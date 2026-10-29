@@ -56,8 +56,8 @@ export const useUi = create<{
   inboxFilter: 'all' | 'unread' | 'waiting' | 'human';
   setInboxFilter: (filter: 'all' | 'unread' | 'waiting' | 'human') => void;
   page: Page;
-  settingsSection: 'accounts' | 'models' | 'advanced' | 'data';
-  setSettingsSection: (section: 'accounts' | 'models' | 'advanced' | 'data') => void;
+  settingsSection: 'accounts' | 'models' | 'advanced' | 'data' | 'appearance';
+  setSettingsSection: (section: 'accounts' | 'models' | 'advanced' | 'data' | 'appearance') => void;
   storeSettingsStep: number | undefined;
   openStoreSettings: (storeId?: string, step?: number) => void;
   storeId: string;

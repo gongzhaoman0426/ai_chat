@@ -13,6 +13,7 @@ import {
   net,
   powerMonitor,
   shell,
+  nativeTheme,
 } from 'electron';
 import type { UtilityProcess } from 'electron';
 import { mkdir, readFile, writeFile, stat, cp, rename, rm, readdir } from 'node:fs/promises';
@@ -126,7 +127,8 @@ async function attachWindow() {
       minWidth: 960,
       minHeight: 720,
       title: '句达',
-      backgroundColor: '#f6f7f9',
+      // Match the renderer's system-following theme to avoid a flash before first paint.
+      backgroundColor: nativeTheme.shouldUseDarkColors ? '#0e131b' : '#f3f7fd',
       titleBarStyle: 'hiddenInset',
       trafficLightPosition: { x: 18, y: 18 },
       icon: windowIcon.isEmpty() ? undefined : windowIcon,

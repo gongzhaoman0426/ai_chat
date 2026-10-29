@@ -1,5 +1,5 @@
 // Isolated visual regression fixture. Never connects a platform or sends customer messages.
-// Usage: node scripts/ui-design-check.mjs [artifact-label]
+// Usage: node scripts/ui-design-check.mjs [artifact-label] [light|dark]
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
 import { createRequire } from 'node:module';
@@ -13,6 +13,7 @@ import { _electron as electron } from 'playwright';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const label = (process.argv[2] || 'current').replace(/[^a-z0-9_-]/gi, '-');
+const colorScheme = process.argv[3] === 'dark' ? 'dark' : 'light';
 const artifacts = resolve(ROOT, '.artifacts', `ui-design-${label}`);
 const dir = await mkdtemp(join(tmpdir(), 'judesk-ui-design-'));
 const dbFile = join(dir, 'db', 'judesk.db');
@@ -39,6 +40,10 @@ try {
       env: { ...process.env, DATABASE_URL: pathToFileURL(dbFile).href },
     },
   );
+  // The pre-migration snapshot requires both workspace databases to exist.
+  const mastra = createClient({ url: pathToFileURL(join(dir, 'db', 'mastra.db')).href });
+  await mastra.executeMultiple('CREATE TABLE ui_init (x); DROP TABLE ui_init;');
+  mastra.close();
   const db = createClient({ url: pathToFileURL(dbFile).href });
   const stores = [
     ['visual-home', 'pinduoduo', '山野生活旗舰店', '小聚'],
@@ -169,6 +174,7 @@ try {
     timeout: 60000,
   });
   const page = await app.firstWindow();
+  await page.emulateMedia({ colorScheme });
   page.setDefaultTimeout(10000);
   page.on('pageerror', (error) => errors.push(error.message));
   await page.waitForFunction(

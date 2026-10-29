@@ -7,6 +7,7 @@ import {
   KeyRound,
   Database,
   Code2,
+  Palette,
   RotateCcw,
   Download,
   Play,
@@ -16,6 +17,7 @@ import {
 } from 'lucide-react';
 import { api, client, useData, perform, useUi } from './api';
 import { Button, Field, Modal, Toggle } from './components/ui';
+import { readTheme, saveTheme, type ThemeChoice } from './theme';
 
 export function SettingsPage({ state }: { state: any }) {
   const { data: models = [] } = useData<any[]>('models.list');
@@ -49,6 +51,7 @@ export function SettingsPage({ state }: { state: any }) {
             ['models', '模型服务', '管理可选用的模型'],
             ['advanced', '高级定制', '助手、技能与业务扩展'],
             ['data', '数据与备份', '本地数据管理'],
+            ['appearance', '外观', '浅色、深色或跟随系统'],
           ].map(([id, title, detail]) => (
             <button
               key={id}
@@ -247,6 +250,7 @@ export function SettingsPage({ state }: { state: any }) {
               )}
             </section>
           )}
+          {section === 'appearance' && <AppearanceSection />}
           {section === 'data' && (
             <section className="card settings-section">
               <div className="settings-title">
@@ -341,5 +345,42 @@ export function SettingsPage({ state }: { state: any }) {
         )}
       </Modal>
     </>
+  );
+}
+
+function AppearanceSection() {
+  const [theme, setTheme] = useState<ThemeChoice>(readTheme);
+  return (
+    <section className="card settings-section">
+      <div className="settings-title">
+        <Palette size={21} />
+        <div>
+          <h3>外观</h3>
+          <p>只影响本机显示，不随备份迁移。</p>
+        </div>
+      </div>
+      <div className="segmented" role="radiogroup" aria-label="界面主题">
+        {(
+          [
+            ['system', '跟随系统'],
+            ['light', '浅色'],
+            ['dark', '深色'],
+          ] as const
+        ).map(([value, label]) => (
+          <button
+            key={value}
+            role="radio"
+            aria-checked={theme === value}
+            className={theme === value ? 'active' : ''}
+            onClick={() => {
+              saveTheme(value);
+              setTheme(value);
+            }}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+    </section>
   );
 }

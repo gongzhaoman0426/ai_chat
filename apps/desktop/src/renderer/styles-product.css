@@ -312,7 +312,7 @@ button:not(:disabled):not(.btn-primary):not(.btn-danger):hover {
   box-shadow: 0 1px 2px rgba(16, 24, 40, 0.12);
 }
 .shop-platform-douyin {
-  background: #1f2024;
+  background: var(--douyin-badge);
   color: #fff;
 }
 .shop-platform-goofish {
@@ -494,7 +494,7 @@ button:not(:disabled):not(.btn-primary):not(.btn-danger):hover {
   padding: 13px 18px;
   height: 74px;
   border-bottom: 1px solid var(--border);
-  background: #fff;
+  background: var(--surface);
   flex-wrap: nowrap;
   gap: 12px;
 }
@@ -544,8 +544,8 @@ button:not(:disabled):not(.btn-primary):not(.btn-danger):hover {
   gap: 8px;
   padding: 9px 20px;
   font-size: var(--fs-11);
-  color: #947645;
-  background: #fff8ed;
+  color: var(--amber-text);
+  background: var(--amber-soft);
   flex-shrink: 0;
 }
 .conversation-alert span {
@@ -559,7 +559,7 @@ button:not(:disabled):not(.btn-primary):not(.btn-danger):hover {
 }
 .reception-layout .messages {
   padding: 18px 22px;
-  background: linear-gradient(180deg, #ffffff 0%, #fbfcff 100%);
+  background: linear-gradient(180deg, var(--surface) 0%, var(--surface-subtle) 100%);
   flex: 1;
   overflow: auto;
   min-height: 0;
@@ -598,7 +598,7 @@ button:not(:disabled):not(.btn-primary):not(.btn-danger):hover {
   max-width: 83%;
 }
 .composer {
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 9px;
   margin: 0 12px 12px;
@@ -693,7 +693,7 @@ button:not(:disabled):not(.btn-primary):not(.btn-danger):hover {
 .reception-layout .desk-customer {
   padding: 10px 14px 9px;
   gap: 6px;
-  background: #fff;
+  background: var(--surface);
 }
 .desk-scope-caption {
   display: flex;
@@ -751,7 +751,7 @@ button:not(:disabled):not(.btn-primary):not(.btn-danger):hover {
 .desk-panel-empty {
   padding: 20px;
   color: var(--text-3);
-  background: #fff !important;
+  background: var(--surface) !important;
 }
 .desk-panel-empty strong {
   color: var(--text-2);
@@ -776,7 +776,7 @@ button:not(:disabled):not(.btn-primary):not(.btn-danger):hover {
   width: auto;
   max-width: 235px;
   padding: 7px 9px;
-  background: #fff;
+  background: var(--surface);
   font-size: var(--fs-12);
 }
 .page-runs > .page-store-scope {
@@ -843,7 +843,7 @@ button:not(:disabled):not(.btn-primary):not(.btn-danger):hover {
   margin-left: auto;
   width: 240px;
   max-width: 100%;
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--border);
   height: 35px;
   border-radius: 6px;
@@ -888,7 +888,7 @@ button:not(:disabled):not(.btn-primary):not(.btn-danger):hover {
   width: 112px;
   height: 72px;
   object-fit: contain;
-  background: #fff;
+  background: var(--surface);
   border-radius: 6px;
   margin-top: 8px;
 }
@@ -925,7 +925,7 @@ button:not(:disabled):not(.btn-primary):not(.btn-danger):hover {
   justify-content: space-between;
   gap: 16px;
   padding: 15px 18px;
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 8px;
   margin-bottom: 18px;
@@ -990,7 +990,7 @@ button:not(:disabled):not(.btn-primary):not(.btn-danger):hover {
   border: 1px solid var(--border);
   border-radius: 8px;
   overflow: hidden;
-  background: #fff;
+  background: var(--surface);
 }
 .management-list-label {
   display: block;
@@ -1094,7 +1094,7 @@ button:not(:disabled):not(.btn-primary):not(.btn-danger):hover {
 .skill-card {
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
-  background: #fff;
+  background: var(--surface);
 }
 .agent-card {
   padding: 22px;
@@ -1109,7 +1109,7 @@ button:not(:disabled):not(.btn-primary):not(.btn-danger):hover {
 .agent-publish-note {
   margin-top: 22px;
   border-radius: 7px;
-  background: #fff;
+  background: var(--surface);
 }
 .agent-publish-note p {
   font-size: var(--fs-11);

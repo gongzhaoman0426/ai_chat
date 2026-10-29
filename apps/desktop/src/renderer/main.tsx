@@ -6,6 +6,7 @@ import type { OnboardingState } from '../../../../packages/core/src/onboarding';
 import { SetupGuide, openSetupGuide } from './pages-setup';
 import { BrandMark } from './brand-mark';
 import { createRoot } from 'react-dom/client';
+import { applyTheme } from './theme';
 import { QueryClientProvider, useQuery, keepPreviousData } from '@tanstack/react-query';
 import { ArrowUpRight, RefreshCw, Info } from 'lucide-react';
 import { api, client, useData, useUi, perform, invalidateLocalData } from './api';
@@ -211,6 +212,7 @@ function App() {
     </div>
   );
 }
+applyTheme();
 createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <QueryClientProvider client={client}>

@@ -34,7 +34,7 @@
   line-height: 1.4;
   border-color: var(--border);
   border-radius: 6px;
-  background: #fff;
+  background: var(--surface);
   color: var(--text);
   cursor: pointer;
 }
@@ -50,14 +50,14 @@
   width: 100%;
   padding: 10px 14px;
   border: 0;
-  border-bottom: 1px solid #f1f3f5;
+  border-bottom: 1px solid var(--border-faint);
   border-left: 3px solid transparent;
   background: transparent;
   color: inherit;
   cursor: pointer;
 }
 .trace-run-item:hover {
-  background: #fff;
+  background: var(--surface);
 }
 .trace-run-item.selected {
   background: var(--brand-soft);
@@ -138,7 +138,7 @@
   justify-content: flex-end;
 }
 .trace-question {
-  background: #fff;
+  background: var(--surface);
   border-radius: 10px;
   padding: 14px;
   margin: 16px 0 12px;
@@ -189,7 +189,7 @@
   border: 1px solid var(--brand-soft);
   border-radius: 10px;
   margin-bottom: 8px;
-  background: white;
+  background: var(--surface);
   min-width: 0;
 }
 .trace-step-failed {
@@ -295,7 +295,7 @@
   border-radius: 8px;
   min-width: 0;
   overflow: hidden;
-  background: #fff;
+  background: var(--surface);
 }
 .trace-value > div {
   display: flex;
@@ -369,7 +369,7 @@
   gap: 10px;
   font-size: var(--fs-12);
   line-height: 1.8;
-  background: #fff;
+  background: var(--surface);
   border-radius: 9px;
   padding: 22px;
 }
@@ -401,7 +401,7 @@
   margin-bottom: 10px;
 }
 .trace-delivery {
-  background: #fff;
+  background: var(--surface);
   border-radius: 8px;
   padding: 12px 14px;
   margin-top: 12px;

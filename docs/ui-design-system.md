@@ -20,6 +20,12 @@
 | 分隔线 | `--border` | `#e7edf5` |
 | 输入边框 | `--border-strong` | `#d6e0ef` |
 
+提醒、学习证据等暖色标签使用 `--amber-*`，错误类次要标签使用 `--rose-*`，紫色辅助标签使用 `--violet-*`（各有 `-soft` 背景、`-border` 边框和 `-text` 文字）。样式中不直接写颜色值；平台徽标与品牌色背景上的白字除外。
+
+## 深色模式
+
+`styles.css` 为全部变量提供深色值：默认跟随系统 `prefers-color-scheme`，也可在「系统设置 → 外观」固定为浅色或深色（写入 `html[data-theme]`，仅保存在本机）。新增样式只要使用上述变量即可自动适配深色。
+
 ## 排版与层次
 
 - 正文以 13px 为基准，控件与说明通常为 12px，11px 用于时间、数量等辅助信息。
@@ -37,4 +43,4 @@
 
 ## 验证
 
-构建后运行 `node scripts/ui-design-check.mjs current`，使用临时数据库检查多个窗口尺寸、会话草稿、导航、详情栏与话术面板，并将截图保存在 `.artifacts/ui-design-current/`。该脚本不使用现有用户资料，也不向客户发送消息；订单、商品与客户详情采用进程内的只读测试响应。
+构建后运行 `node scripts/ui-design-check.mjs current`（深色模式加参数 `dark`，例如 `node scripts/ui-design-check.mjs dark dark`），使用临时数据库检查多个窗口尺寸、会话草稿、导航、详情栏与话术面板，并将截图保存在 `.artifacts/ui-design-current/`。该脚本不使用现有用户资料，也不向客户发送消息；订单、商品与客户详情采用进程内的只读测试响应。
