@@ -1,0 +1,59 @@
+.service-welcome {
+  height: 100vh;
+  overflow: auto;
+  background: var(--bg);
+  padding: 64px 32px 36px;
+  box-sizing: border-box;
+}
+.service-welcome-content {
+  max-width: 640px;
+  margin: 0 auto;
+}
+.service-welcome-heading {
+  text-align: center;
+  margin-bottom: 28px;
+}
+.service-welcome-heading .brand-icon {
+  margin: 0 auto 15px;
+  width: 46px;
+  height: 46px;
+}
+.service-welcome-heading h1 {
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.6px;
+  margin: 14px 0 12px;
+  color: var(--text);
+}
+.service-welcome-heading p {
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--text-2);
+}
+.service-own-form {
+  max-width: 590px;
+  margin: 0 auto;
+  padding: 28px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+.service-own-form .modal-actions {
+  margin-top: 25px;
+}
+.service-skip {
+  display: flex;
+  justify-content: center;
+  padding: 15px 0;
+}
+@media (max-width: 680px) {
+  .service-welcome {
+    padding: 44px 20px 24px;
+  }
+  .service-welcome-heading h1 {
+    font-size: 24px;
+  }
+  .service-own-form {
+    padding: 20px;
+  }
+}

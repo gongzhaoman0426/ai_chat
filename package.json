@@ -1,7 +1,7 @@
 {
   "name": "judesk",
   "version": "0.1.15",
-  "description": "句达 · 本地 AI 客服工作台",
+  "description": "句达 · 本地 AI 客服工作台（开源 Demo）",
   "private": true,
   "type": "module",
   "main": "out/main/bootstrap.js",
@@ -19,7 +19,6 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "node scripts/electron-smoke.mjs",
-    "test:cloud": "node scripts/free-cloud-smoke.mjs",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate deploy",
     "pack": "pnpm build && electron-builder --dir",
@@ -31,7 +30,6 @@
     "icons": "electron scripts/render-icons.mjs"
   },
   "dependencies": {
-    "@judesk/license-client": "file:../judesk-license/packages/client",
     "@libsql/client": "^0.17.0",
     "@mastra/core": "1.64.0",
     "@mastra/libsql": "1.22.3",
@@ -45,7 +43,6 @@
     "ajv": "^8.17.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "electron-updater": "6.8.9",
     "lucide-react": "^0.577.0",
     "prisma": "7.10.0",
     "react": "19.2.8",

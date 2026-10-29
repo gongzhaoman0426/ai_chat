@@ -27,6 +27,9 @@ export function hash(value: unknown) {
     .digest('hex');
 }
 export const uid = () => randomUUID();
+// Profiles created by the removed hosted-AI service keep their `cloud:` ids in old workspaces.
+export const isRetiredCloudModel = (model: { id?: unknown }) =>
+  typeof model.id === 'string' && model.id.startsWith('cloud:');
 export const errorText = (e: unknown) =>
   e instanceof DomainError ? e.message : e instanceof Error ? e.message.slice(0, 500) : '未知错误';
 export class Mutex {

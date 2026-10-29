@@ -337,14 +337,6 @@ export const learningSchema = z.object({
 export type LearningResult = z.infer<typeof learningSchema>;
 const storeInput = z.object({ storeId: id }).strict();
 const empty = z.object({}).strict();
-const licenseEmail = z.string().trim().toLowerCase().max(254).email('请输入有效邮箱地址');
-const licenseEmailVerification = z
-  .object({
-    email: licenseEmail,
-    verificationId: z.string().uuid(),
-    code: z.string().regex(/^\d{6}$/, '请输入 6 位邮箱验证码'),
-  })
-  .strict();
 export const apiInputs = {
   ...workbenchInputs,
   'qianniu.status': empty,
@@ -352,52 +344,11 @@ export const apiInputs = {
   'qianniu.launch': empty,
   'qianniu.addAccount': empty,
   'qianniu.retryHook': empty,
-  'license.state': empty,
-  'license.cloudCatalog': empty,
-  'license.cloudWallet': empty,
-  'license.cloudUsage': empty,
-  'license.cloudRechargeOrders': empty,
-  'license.cloudRecharge': z
-    .object({ amountCents: z.number().int().min(100).max(1000000), requestId: z.string().uuid() })
-    .strict(),
-  'license.cloudRechargeStatus': z.object({ id }).strict(),
-  'license.cloudUseModel': z
-    .object({ modelId: id, dimensions: z.number().int().min(1).max(8192).optional() })
-    .strict(),
-  'license.login': z
-    .object({ email: licenseEmail, password: z.string().min(10).max(200) })
-    .strict(),
-  'license.sendEmailCode': z
-    .object({
-      email: licenseEmail,
-      purpose: z.enum(['register', 'login', 'reset_password']),
-    })
-    .strict(),
-  'license.loginCode': licenseEmailVerification,
-  'license.register': licenseEmailVerification
-    .extend({
-      password: z.string().min(10).max(200),
-      name: z.string().max(50).optional(),
-    })
-    .strict(),
-  'license.resetPassword': licenseEmailVerification
-    .extend({
-      password: z.string().min(10).max(200),
-    })
-    .strict(),
-  'license.refresh': empty,
-  'license.logout': empty,
-  'license.inviteCode': z.object({ code: z.string().trim().min(1).max(64) }).strict(),
-  'license.overview': empty,
-  'license.softwareCatalog': empty,
-  'license.softwareOrders': empty,
-  'license.softwareOrder': z.object({ id }).strict(),
-  'license.softwarePurchase': z.object({ planId: id, requestId: z.string().uuid() }).strict(),
   'app.state': empty,
   'app.settings': z
     .object({
       developerModeEnabled: z.boolean().optional(),
-      aiSetupMode: z.enum(['own', 'cloud', 'later']).optional(),
+      aiSetupMode: z.enum(['own', 'later']).optional(),
       setupGuideState: z.enum(['active', 'dismissed', 'completed']).optional(),
       embeddingProfileId: id.nullable().optional(),
       defaultModelId: id.nullable().optional(),
@@ -626,6 +577,13 @@ export const apiInputs = {
   'models.list': empty,
   'models.save': modelSchema,
   'models.test': z.object({ id: id }).strict(),
+  'models.discover': z
+    .object({
+      id: id.optional(),
+      baseUrl: modelSchema.shape.baseUrl,
+      apiKey: z.string().max(4096).optional(),
+    })
+    .strict(),
   'runs.list': storeInput,
   'runs.history': z
     .object({
@@ -645,28 +603,6 @@ export const apiInputs = {
 } as const;
 export type Method = keyof typeof apiInputs;
 export type Input<M extends Method> = z.input<(typeof apiInputs)[M]>;
-export type DesktopUpdateStatus =
-  | 'disabled'
-  | 'idle'
-  | 'checking'
-  | 'available'
-  | 'downloading'
-  | 'downloaded'
-  | 'installing'
-  | 'not-available'
-  | 'error';
-export interface DesktopUpdateState {
-  status: DesktopUpdateStatus;
-  currentVersion: string;
-  mode: 'manual' | 'automatic';
-  version?: string;
-  releaseNotes?: string;
-  releaseDate?: string;
-  size?: number;
-  progress?: number;
-  downloadUrl?: string;
-  error?: string;
-}
 export const developerMethods = new Set<Method>([
   'agents.list',
   'agents.save',
@@ -694,11 +630,6 @@ export interface DesktopApi {
   call<T = unknown>(method: Method, input?: unknown): Promise<T>;
   onChanged(callback: () => void): () => void;
   onNotice?(callback: (message: string) => void): () => void;
-  getUpdateState(): Promise<DesktopUpdateState>;
-  checkForUpdates(): Promise<DesktopUpdateState>;
-  downloadUpdate(): Promise<DesktopUpdateState>;
-  installUpdate(): Promise<void>;
-  onUpdate(callback: (state: DesktopUpdateState) => void): () => void;
 }
 export interface IncomingMessage {
   accountId: string;

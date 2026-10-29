@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ShieldCheck } from 'lucide-react';
+import { ListRestart, ShieldCheck } from 'lucide-react';
 import { api, client, useAvailablePlatforms, useUi } from './api';
 import { platformNames } from '../../../../packages/contracts/src/platform';
 import { QianniuSetup } from './components/qianniu-setup';
@@ -21,6 +21,15 @@ export const defaultEmbeddingModel = () => ({
   name: '问答向量模型',
   kind: 'embedding',
 });
+// Suggestions only: any OpenAI-compatible base URL can be typed in.
+const baseUrlHints = [
+  ['https://api.openai.com/v1', 'OpenAI'],
+  ['https://api.deepseek.com/v1', 'DeepSeek'],
+  ['https://dashscope.aliyuncs.com/compatible-mode/v1', '通义千问'],
+  ['https://open.bigmodel.cn/api/paas/v4', '智谱 GLM'],
+  ['https://ark.cn-beijing.volces.com/api/v3', '火山方舟'],
+  ['http://127.0.0.1:11434/v1', 'Ollama 本地'],
+];
 export function modelSaveInput(model: any) {
   return {
     id: model.id,
@@ -46,6 +55,28 @@ export function ModelFields({
   chatOnly?: boolean;
   embeddingOnly?: boolean;
 }) {
+  const [remoteModels, setRemoteModels] = useState<string[]>([]);
+  const [discovering, setDiscovering] = useState(false);
+  const [discoverError, setDiscoverError] = useState('');
+  const listId = `model-ids-${model.kind}`;
+  async function discover() {
+    setDiscovering(true);
+    setDiscoverError('');
+    try {
+      const ids = await api<string[]>('models.discover', {
+        id: model.id,
+        baseUrl: model.baseUrl.trim(),
+        apiKey: model.apiKey || undefined,
+      });
+      setRemoteModels(ids);
+      if (!model.model && ids.length === 1) onChange({ ...model, model: ids[0] });
+    } catch (e) {
+      setRemoteModels([]);
+      setDiscoverError(e instanceof Error ? e.message : '获取模型列表失败');
+    } finally {
+      setDiscovering(false);
+    }
+  }
   return (
     <div className="form-grid model-fields">
       {!chatOnly && !embeddingOnly && (
@@ -72,10 +103,16 @@ export function ModelFields({
         <input
           type="url"
           placeholder="https://api.example.com/v1"
+          list="model-base-url-hints"
           value={model.baseUrl}
           onChange={(e) => onChange({ ...model, baseUrl: e.target.value })}
           required
         />
+        <datalist id="model-base-url-hints">
+          {baseUrlHints.map(([url, label]) => (
+            <option key={url} value={url} label={label} />
+          ))}
+        </datalist>
       </Field>
       <Field
         label="API Key"
@@ -91,13 +128,38 @@ export function ModelFields({
           onChange={(e) => onChange({ ...model, apiKey: e.target.value })}
         />
       </Field>
-      <Field label="模型标识" hint="与服务商控制台中的 model ID 保持一致。">
-        <input
-          placeholder="填写服务商的 model ID"
-          value={model.model}
-          onChange={(e) => onChange({ ...model, model: e.target.value })}
-          required
-        />
+      <Field
+        label="模型标识"
+        hint={
+          discoverError ||
+          (remoteModels.length
+            ? `已获取 ${remoteModels.length} 个模型，输入时可从列表选择。`
+            : '与服务商控制台中的 model ID 保持一致，也可以从服务商获取列表。')
+        }
+      >
+        <div className="model-id-row">
+          <input
+            placeholder="填写服务商的 model ID"
+            list={listId}
+            value={model.model}
+            onChange={(e) => onChange({ ...model, model: e.target.value })}
+            required
+          />
+          <Button
+            type="button"
+            variant="secondary"
+            disabled={discovering || !/^https?:\/\/./.test(model.baseUrl.trim())}
+            onClick={() => void discover()}
+          >
+            <ListRestart size={15} />
+            {discovering ? '获取中…' : '获取模型列表'}
+          </Button>
+        </div>
+        <datalist id={listId}>
+          {remoteModels.map((id) => (
+            <option key={id} value={id} />
+          ))}
+        </datalist>
       </Field>
       {model.kind === 'embedding' && (
         <Field

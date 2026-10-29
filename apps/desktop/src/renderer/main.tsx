@@ -1,12 +1,12 @@
 import { WorkspaceNavigation } from './components/workspace-navigation';
 import { StoresPage } from './pages-stores';
-import { AccountPage } from './pages-account';
 import { ServiceWelcome } from './pages-welcome';
 import React, { useEffect, useRef, useState } from 'react';
 import type { OnboardingState } from '../../../../packages/core/src/onboarding';
 import { SetupGuide, openSetupGuide } from './pages-setup';
 import { BrandMark } from './brand-mark';
 import { createRoot } from 'react-dom/client';
+import { applyTheme } from './theme';
 import { QueryClientProvider, useQuery, keepPreviousData } from '@tanstack/react-query';
 import { ArrowUpRight, RefreshCw, Info } from 'lucide-react';
 import { api, client, useData, useUi, perform, invalidateLocalData } from './api';
@@ -14,7 +14,7 @@ import { Button } from './components/ui';
 import { Inbox } from './pages-inbox';
 import { Knowledge, Learning } from './pages-knowledge';
 import { Skills } from './pages-skills';
-import { Agents, Assets, Bindings } from './pages-agents';
+import { Agents, Assets } from './pages-agents';
 import { SettingsPage } from './pages-settings';
 import { AgentRuns } from './pages-runs';
 import './styles.css';
@@ -28,12 +28,10 @@ const pageTitles = {
   learning: '学习审核',
   stores: '店铺管理',
   settings: '系统设置',
-  account: '云端 AI',
-  agents: 'Agent Studio',
+  agents: '助手',
   skills: 'Skills',
-  toolkits: 'Toolkit',
-  workflows: 'Workflow',
-  bindings: '工作绑定',
+  toolkits: '扩展',
+  workflows: '扩展',
   runs: 'Agent 执行',
   setup: '上手引导',
 };
@@ -42,14 +40,12 @@ function App() {
   const { data: state, error, refetch } = useData('app.state');
   const { data: models } = useData<any[]>('models.list');
   const [welcomeDone, setWelcomeDone] = useState(false);
-  const [serviceChoiceOpen, setServiceChoiceOpen] = useState(false);
   const { data: stores = [], isSuccess: storesLoaded } = useData<any[]>('stores.list');
   const linkedStores = stores.filter((s) => s.accounts?.length);
   const store = linkedStores.find((s) => s.id === ui.storeId) ?? linkedStores[0];
   const developer = state?.settings?.developerModeEnabled === true;
   const needsWelcome =
-    serviceChoiceOpen ||
-    (!welcomeDone && !!state && !!models && storesLoaded && !state.settings?.aiSetupMode);
+    !welcomeDone && !!state && !!models && storesLoaded && !state.settings?.aiSetupMode;
   const {
     data: guide,
     error: guideError,
@@ -89,10 +85,7 @@ function App() {
     if (!linkedStores.length && ui.storeId) useUi.setState({ storeId: '' });
   }, [linkedStores, ui.storeId]);
   useEffect(() => {
-    if (
-      !developer &&
-      ['agents', 'skills', 'toolkits', 'workflows', 'bindings', 'runs'].includes(ui.page)
-    )
+    if (!developer && ['agents', 'skills', 'toolkits', 'workflows', 'runs'].includes(ui.page))
       ui.setPage('inbox');
   }, [developer, ui.page]);
   useEffect(() => {
@@ -110,10 +103,7 @@ function App() {
       <ServiceWelcome
         hasExistingConfiguration={!!models?.length || !!stores.length}
         savedMode={state?.settings?.aiSetupMode}
-        onContinue={() => {
-          setWelcomeDone(true);
-          setServiceChoiceOpen(false);
-        }}
+        onContinue={() => setWelcomeDone(true)}
       />
     );
   if (
@@ -142,7 +132,6 @@ function App() {
           stores={linkedStores}
           refresh={refreshGuide}
           loading={guideRefreshing}
-          onChooseAi={() => setServiceChoiceOpen(true)}
         />
         {ui.toast && (
           <div className="toast" role="status">
@@ -190,9 +179,7 @@ function App() {
                 </Button>
               </div>
             )}
-            {ui.page === 'account' ? (
-              <AccountPage />
-            ) : ui.page === 'inbox' ? (
+            {ui.page === 'inbox' ? (
               <Inbox />
             ) : ui.page === 'stores' ? (
               <StoresPage stores={linkedStores} state={state} />
@@ -208,12 +195,10 @@ function App() {
               <Assets key="toolkit" kind="toolkit" />
             ) : ui.page === 'workflows' ? (
               <Assets key="workflow" kind="workflow" />
-            ) : ui.page === 'bindings' ? (
-              <Bindings stores={linkedStores} />
             ) : ui.page === 'runs' && developer ? (
               <AgentRuns store={store} />
             ) : (
-              <SettingsPage state={state} onChooseAi={() => setServiceChoiceOpen(true)} />
+              <SettingsPage state={state} />
             )}
           </div>
         )}
@@ -227,6 +212,7 @@ function App() {
     </div>
   );
 }
+applyTheme();
 createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <QueryClientProvider client={client}>

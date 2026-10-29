@@ -38,13 +38,11 @@ export function SetupGuide({
   stores,
   refresh,
   loading = false,
-  onChooseAi,
 }: {
   data: OnboardingState;
   stores: any[];
   refresh: () => unknown;
   loading?: boolean;
-  onChooseAi?: () => void;
 }) {
   const ui = useUi();
   const platforms = useAvailablePlatforms();
@@ -112,11 +110,6 @@ export function SetupGuide({
           <Badge>接待配置</Badge>
         </div>
         <div className="setup-topbar-actions">
-          {onChooseAi && (
-            <Button variant="secondary" disabled={!!busy} onClick={onChooseAi}>
-              选择 AI 服务
-            </Button>
-          )}
           <Button variant="ghost" disabled={!!busy} onClick={() => void leave('inbox', complete)}>
             {complete || data.enabled ? '返回接待中心' : '先人工接待，稍后配置'}
             <ArrowRight size={15} />
@@ -326,8 +319,7 @@ export function SetupGuide({
                 <span className="setup-kicker">第 2 步 / 共 4 步 · 全局配置</span>
                 <h1>先设置问答检索模型</h1>
                 <p>
-                  这是全店共用的
-                  Embedding，用来按含义匹配已有问答。云端模型登录后会自动出现；也可以填写自己的向量服务。
+                  这是全店共用的 Embedding，用来按含义匹配已有问答。填写 OpenAI 兼容的向量服务即可。
                 </p>
               </div>
               <section className="setup-card">

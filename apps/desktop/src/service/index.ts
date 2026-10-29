@@ -2,7 +2,6 @@ import {
   quickPreviewSchema,
   type QuickPreview,
 } from '../../../../packages/contracts/src/commerce-extra';
-import { DesktopLicense } from '../../../../packages/core/src/license';
 import {
   transferPreviewSchema,
   type TransferPreview,
@@ -134,11 +133,6 @@ parent.on('message', async ({ data }) => {
       ai = new MastraAi(db, data.dir, host, data.nodeExecutable);
       await ai.initialize();
       engine = new Engine(db, data.dir, host, ai);
-      const license = new DesktopLicense(db, data.dir, host, data.licenseConfig || {});
-      engine.license = license;
-      ai.license = license;
-      license.onChanged = () => parent.postMessage({ type: 'changed' });
-      await license.initialize();
       router = new Router(engine, ai, data.appVersion);
       engine.onChanged = () => parent.postMessage({ type: 'changed' });
       await engine.initialize();
@@ -255,7 +249,6 @@ parent.on('message', async ({ data }) => {
     }
     if (data.type === 'shutdown') {
       await engine.stop();
-      await engine.license?.close();
       await ai.close();
       await engine.db.$disconnect();
       parent.postMessage({ type: 'stopped' });

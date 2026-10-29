@@ -1,4 +1,3 @@
-import { isCloudModel, type DesktopLicense } from '../../core/src/license';
 import { resolveRuntimeToolkits } from '../../agent-config/src/toolkit-resolution';
 import { resolveKnowledgeMatches } from '../../core/src/knowledge-resolution';
 import { resourceAllowed, assertResourceAllowed } from '../../agent-config/src/resource-scope';
@@ -66,7 +65,14 @@ import {
 } from '../../core/src/types';
 import type { PublishedConfig } from '../../agent-config/src/index';
 import type { ScopedAssetContext } from '../../extension-sdk/src/index';
-import { assert, hash, uid, errorText } from '../../core/src/util';
+import {
+  DomainError,
+  assert,
+  hash,
+  uid,
+  errorText,
+  isRetiredCloudModel,
+} from '../../core/src/util';
 import { AssetService } from './assets';
 import {
   knowledgeBootstrapResultSchema,
@@ -78,7 +84,6 @@ export class MastraAi implements AiPort {
   readonly storage: LibSQLStore;
   readonly vector: LibSQLVector;
   private debugStorage?: LibSQLStore;
-  license?: DesktopLicense;
   constructor(
     private db: PrismaClient,
     private dir: string,
@@ -125,7 +130,7 @@ export class MastraAi implements AiPort {
       body: JSON.stringify({ model: profile.model, input: text }),
       signal: AbortSignal.timeout(profile.timeoutMs),
     });
-    if (!response.ok && isCloudModel(profile)) {
+    if (!response.ok) {
       const failure = (await response.json().catch(() => null)) as {
         error?: { message?: unknown };
       } | null;
@@ -133,10 +138,9 @@ export class MastraAi implements AiPort {
         false,
         typeof failure?.error?.message === 'string'
           ? failure.error.message.slice(0, 500)
-          : `云端 Embedding 服务返回 ${response.status}`,
+          : `Embedding 服务返回 ${response.status}`,
       );
     }
-    assert(response.ok, `Embedding 服务返回 ${response.status}`);
     const body = (await response.json()) as { data?: Array<{ embedding: number[] }> };
     const vector = body.data?.[0]?.embedding;
     assert(
@@ -243,11 +247,10 @@ export class MastraAi implements AiPort {
     return undefined;
   }
   private async modelConnection(model: Record<string, unknown>) {
-    if (isCloudModel(model)) {
-      assert(this.license, '云端 AI 服务尚未初始化');
-      return this.license.cloudConnection();
-    }
-    this.license?.assertByokAllowed();
+    assert(
+      !isRetiredCloudModel(model),
+      '云端模型已停用，请在「系统设置 → 模型服务」改用 OpenAI 兼容模型',
+    );
     return {
       baseUrl: String(model.baseUrl),
       apiKey: typeof model.secretRef === 'string' ? await this.host.secretGet(model.secretRef) : '',
@@ -1016,6 +1019,31 @@ export class MastraAi implements AiPort {
       abortSignal: AbortSignal.timeout(m.timeoutMs),
     });
     return { ok: true, text: r.text, usage: r.usage };
+  }
+  // Lists model ids from an OpenAI-compatible `GET /models`. An empty key falls back to the
+  // saved key of the profile being edited.
+  async discoverModels(input: { id?: string; baseUrl: string; apiKey?: string }) {
+    let apiKey = input.apiKey ?? '';
+    if (!apiKey && input.id) {
+      const saved = await this.db.modelProfile.findUnique({ where: { id: input.id } });
+      if (saved?.secretRef) apiKey = await this.host.secretGet(saved.secretRef);
+    }
+    const response = await fetch(input.baseUrl.replace(/\/$/, '') + '/models', {
+      redirect: 'error',
+      headers: apiKey ? { Authorization: `Bearer ${apiKey}` } : {},
+      signal: AbortSignal.timeout(15000),
+    }).catch((e): never => {
+      throw new DomainError('INVALID_STATE', `无法连接模型服务：${errorText(e)}`);
+    });
+    assert(response.ok, `模型服务返回 ${response.status}，请检查地址与密钥，或直接填写模型标识`);
+    const body = (await response.json().catch(() => null)) as {
+      data?: Array<{ id?: unknown }>;
+    } | null;
+    const ids = (body?.data ?? [])
+      .map((m) => m?.id)
+      .filter((v): v is string => typeof v === 'string' && !!v);
+    assert(ids.length, '模型服务没有返回可用模型，请直接填写模型标识');
+    return [...new Set(ids)].sort((a, b) => a.localeCompare(b));
   }
   async generateKnowledgeDrafts(
     model: Record<string, unknown>,

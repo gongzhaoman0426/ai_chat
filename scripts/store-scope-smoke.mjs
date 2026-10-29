@@ -130,7 +130,7 @@ export async function checkStoreScopes({ app, page, dbFile, imagePath }) {
       assert.equal(row.mode, 'selected');
       return row;
     };
-    await page.getByRole('button', { name: 'Agent Studio', exact: true }).click();
+    await page.getByRole('button', { name: '助手', exact: true }).click();
     await page.getByRole('button', { name: '新建 Agent', exact: true }).click();
     modal = page.getByRole('dialog');
     await modal.getByRole('textbox', { name: 'Agent 名称' }).fill('__SCOPE__共享客服');
@@ -163,7 +163,10 @@ export async function checkStoreScopes({ app, page, dbFile, imagePath }) {
       ['workflow', 'Workflow', 'builtin/reply-helpers@1.0.0'],
     ]) {
       const asset = (await call('assets.list')).assets.find((a) => a.id === id);
-      await page.getByRole('button', { name: label, exact: true }).click();
+      await page.getByRole('button', { name: '扩展', exact: true }).click();
+      await page
+        .getByRole('tab', { name: `${label} ${kind === 'toolkit' ? '工具库' : '流程库'}` })
+        .click();
       await page
         .locator('.asset-card')
         .filter({ has: page.getByRole('heading', { name: asset.manifest.name, exact: true }) })

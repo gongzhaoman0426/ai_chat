@@ -35,10 +35,7 @@ export const invalidateLocalData = () =>
   client.invalidateQueries({
     predicate: (q) => {
       const method = String(q.queryKey[0]);
-      return (
-        method !== 'workbench.query' &&
-        (!method.startsWith('license.') || method === 'license.state')
-      );
+      return method !== 'workbench.query';
     },
   });
 type Page =
@@ -51,18 +48,16 @@ type Page =
   | 'skills'
   | 'toolkits'
   | 'workflows'
-  | 'bindings'
   | 'runs'
-  | 'settings'
-  | 'account';
+  | 'settings';
 export const useUi = create<{
   inboxStoreId: string | null;
   setInboxStore: (id: string | null) => void;
   inboxFilter: 'all' | 'unread' | 'waiting' | 'human';
   setInboxFilter: (filter: 'all' | 'unread' | 'waiting' | 'human') => void;
   page: Page;
-  settingsSection: 'accounts' | 'models' | 'advanced' | 'data';
-  setSettingsSection: (section: 'accounts' | 'models' | 'advanced' | 'data') => void;
+  settingsSection: 'accounts' | 'models' | 'advanced' | 'data' | 'appearance';
+  setSettingsSection: (section: 'accounts' | 'models' | 'advanced' | 'data' | 'appearance') => void;
   storeSettingsStep: number | undefined;
   openStoreSettings: (storeId?: string, step?: number) => void;
   storeId: string;

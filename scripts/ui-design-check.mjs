@@ -1,5 +1,5 @@
 // Isolated visual regression fixture. Never connects a platform or sends customer messages.
-// Usage: node scripts/ui-design-check.mjs [artifact-label]
+// Usage: node scripts/ui-design-check.mjs [artifact-label] [light|dark]
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
 import { createRequire } from 'node:module';
@@ -13,6 +13,7 @@ import { _electron as electron } from 'playwright';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const label = (process.argv[2] || 'current').replace(/[^a-z0-9_-]/gi, '-');
+const colorScheme = process.argv[3] === 'dark' ? 'dark' : 'light';
 const artifacts = resolve(ROOT, '.artifacts', `ui-design-${label}`);
 const dir = await mkdtemp(join(tmpdir(), 'judesk-ui-design-'));
 const dbFile = join(dir, 'db', 'judesk.db');
@@ -39,6 +40,10 @@ try {
       env: { ...process.env, DATABASE_URL: pathToFileURL(dbFile).href },
     },
   );
+  // The pre-migration snapshot requires both workspace databases to exist.
+  const mastra = createClient({ url: pathToFileURL(join(dir, 'db', 'mastra.db')).href });
+  await mastra.executeMultiple('CREATE TABLE ui_init (x); DROP TABLE ui_init;');
+  mastra.close();
   const db = createClient({ url: pathToFileURL(dbFile).href });
   const stores = [
     ['visual-home', 'pinduoduo', '山野生活旗舰店', '小聚'],
@@ -161,7 +166,6 @@ try {
     ...process.env,
     JUDESK_DATA_DIR: dir,
     JUDESK_SMOKE_TEST: '1',
-    JUDESK_LICENSE_CONFIG: join(dir, 'cloud-disabled.json'),
   };
   delete env.ELECTRON_RUN_AS_NODE;
   app = await electron.launch({
@@ -170,6 +174,7 @@ try {
     timeout: 60000,
   });
   const page = await app.firstWindow();
+  await page.emulateMedia({ colorScheme });
   page.setDefaultTimeout(10000);
   page.on('pageerror', (error) => errors.push(error.message));
   await page.waitForFunction(
@@ -335,7 +340,6 @@ try {
     ['knowledge', '问答库'],
     ['stores', '店铺管理'],
     ['settings', '系统设置'],
-    ['account', '云端 AI'],
   ]) {
     await nav.getByRole('button', { name: button, exact: true }).click();
     await page.locator(`.page-${name === 'settings' ? 'settings' : name}`).waitFor();
@@ -464,14 +468,6 @@ try {
   await resize(1280, 800);
   await capture('inbox-orders-1280');
   await resize(1440, 960);
-  await nav.getByRole('button', { name: '系统设置', exact: true }).click();
-  await page.getByRole('button', { name: '选择 AI 服务', exact: true }).click();
-  await page.getByRole('heading', { name: '选一种方式，让 AI 开始工作', exact: true }).waitFor();
-  await capture('welcome-1440');
-  await resize(1100, 800);
-  await capture('welcome-1100');
-  await resize(1440, 960);
-  await page.getByRole('button', { name: '保留现有配置，继续使用', exact: true }).click();
   await nav.getByRole('button', { name: '上手引导', exact: true }).click();
   await page.locator('.setup-shell').waitFor();
   await capture('onboarding-1440');

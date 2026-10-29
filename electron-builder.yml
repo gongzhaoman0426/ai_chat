@@ -4,10 +4,6 @@ productName: 句达
 executableName: judesk
 artifactName: 'judesk-${version}-${os}-${arch}.${ext}'
 forceCodeSigning: false
-publish:
-  provider: generic
-  url: 'https://updates.quantaflow.one/stable/${platform}/${arch}'
-  publishAutoUpdate: true
 directories:
   output: dist
 beforePack: ./scripts/before-pack.cjs
@@ -53,4 +49,3 @@ win:
 nsis:
   oneClick: true
   perMachine: false
-  differentialPackage: true

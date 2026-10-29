@@ -50,7 +50,7 @@ export function EmbeddingModelSettings({
               ? `当前向量模型：${data.embedding.name || data.embedding.model} · ${data.embedding.model}${
                   data.embedding.dimensions ? ` · ${data.embedding.dimensions} 维` : ''
                 }`
-              : '按含义匹配已生效问答。不负责生成回复，云端登录后会自动加入可用模型。'}
+              : '按含义匹配已生效问答。不负责生成回复，填写 OpenAI 兼容的向量服务即可。'}
           </p>
         </div>
         <Badge tone={data.embedding.ready ? 'green' : 'orange'}>
@@ -129,7 +129,8 @@ export function EmbeddingModelSettings({
             <div className="assistant-apply-note">
               <ScanSearch size={17} />
               <p>
-                云端模型登录后会自动出现在列表里，选中保存即可。没配也能继续配置助手，相近问法不会走语义直答。
+                填写 OpenAI 兼容的向量服务（需支持 /embeddings
+                与固定维度）。没配也能继续配置助手，相近问法不会走语义直答。
               </p>
             </div>
             <div className="actions">

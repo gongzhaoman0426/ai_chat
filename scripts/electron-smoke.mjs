@@ -37,6 +37,10 @@ await promisify(execFile)(
   ],
   { env: { ...process.env, DATABASE_URL: `file:${dbFile.replaceAll('\\', '/')}` } },
 );
+// The pre-migration snapshot requires both workspace databases to exist.
+const mastra = createClient({ url: pathToFileURL(join(dir, 'db', 'mastra.db')).href });
+await mastra.executeMultiple('CREATE TABLE smoke_init (x); DROP TABLE smoke_init;');
+mastra.close();
 const seed = createClient({ url });
 await seed.batch(
   [
@@ -137,6 +141,11 @@ await seed.batch(
         Date.now(),
         '{}',
       ],
+    },
+    {
+      // The fixture workspace has already chosen its model source; skip the welcome page.
+      sql: 'INSERT INTO AppSetting (key,value) VALUES (?,?)',
+      args: ['aiSetupMode', JSON.stringify('own')],
     },
   ],
   'write',
@@ -421,7 +430,7 @@ try {
   await page.getByRole('button', { name: '话术', exact: true }).click();
   assert.equal(await phrases.locator('.quick-reply-card').count(), 7);
   await phrases.getByRole('button', { name: '关闭弹窗', exact: true }).click();
-  const hidden = await page.getByRole('button', { name: 'Agent Studio', exact: true }).count();
+  const hidden = await page.getByRole('button', { name: '助手', exact: true }).count();
   assert.equal(hidden, 0);
   assert.equal(await page.getByRole('button', { name: '运行记录', exact: true }).count(), 0);
   assert.equal(await page.getByRole('button', { name: 'Agent 执行', exact: true }).count(), 0);
@@ -430,10 +439,10 @@ try {
   await page.screenshot({ path: '.artifacts/settings.png' });
   await page.getByRole('tab', { name: '高级定制', exact: false }).click();
   await page.getByRole('switch', { name: '显示开发者工具' }).click();
-  await page.getByRole('button', { name: 'Agent Studio', exact: true }).click();
+  await page.getByRole('button', { name: '助手', exact: true }).click();
   await page.getByText('默认自动回复', { exact: true }).waitFor();
   await page.screenshot({ path: '.artifacts/agents.png' });
-  await page.getByRole('button', { name: 'Toolkit', exact: true }).click();
+  await page.getByRole('button', { name: '扩展', exact: true }).click();
   await page.getByText('基础工具', { exact: true }).click();
   await page.getByLabel('试跑成员').selectOption('calculate');
   await page.getByLabel('输入 JSON').fill(JSON.stringify({ a: 12, b: 3, operation: 'divide' }));
@@ -877,7 +886,7 @@ try {
   await waitForService(blank);
   assert.deepEqual(await blank.evaluate(() => window.judesk.call('stores.list')), []);
   assert.equal((await blank.evaluate(() => window.judesk.call('app.state'))).hasDefaultAgent, true);
-  await blank.getByRole('heading', { name: '选一种方式，让 AI 开始工作' }).waitFor();
+  await blank.getByRole('heading', { name: '连接你的模型服务' }).waitFor();
   await blank.screenshot({ path: '.artifacts/first-launch.png' });
   await blank.getByRole('button', { name: '稍后配置，先使用人工接待', exact: true }).click();
   assert.equal(

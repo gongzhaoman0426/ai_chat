@@ -7,104 +7,20 @@ import {
   KeyRound,
   Database,
   Code2,
+  Palette,
   RotateCcw,
   Download,
   Play,
   CheckCircle2,
   ArrowUpRight,
-  Cloud,
   RefreshCw,
 } from 'lucide-react';
 import { api, client, useData, perform, useUi } from './api';
 import { Button, Field, Modal, Toggle } from './components/ui';
-import type { DesktopUpdateState } from '../../../../packages/contracts/src/index';
+import { readTheme, saveTheme, type ThemeChoice } from './theme';
 
-function UpdatePanel() {
-  const [update, setUpdate] = useState<DesktopUpdateState | null>(null);
-  const [busy, setBusy] = useState(false);
-  useEffect(() => {
-    let mounted = true;
-    void window.judesk.getUpdateState().then((state) => mounted && setUpdate(state));
-    const off = window.judesk.onUpdate((state) => mounted && setUpdate(state));
-    return () => {
-      mounted = false;
-      off();
-    };
-  }, []);
-  const run = async (action: 'checkForUpdates' | 'downloadUpdate' | 'installUpdate') => {
-    setBusy(true);
-    try {
-      const state = await window.judesk[action]();
-      if (state) setUpdate(state);
-    } catch (error) {
-      setUpdate((current) => ({
-        ...(current ?? { status: 'error', currentVersion: '未知', mode: 'manual' }),
-        status: 'error',
-        error: error instanceof Error ? error.message : '更新操作失败',
-      }));
-    } finally {
-      setBusy(false);
-    }
-  };
-  if (!update) return null;
-  const statusText: Record<DesktopUpdateState['status'], string> = {
-    disabled: '当前环境不支持更新检查',
-    idle: '尚未检查',
-    checking: '正在检查更新…',
-    available: `发现新版本 ${update.version ?? ''}`,
-    downloading: `正在下载 ${Math.round(update.progress ?? 0)}%`,
-    downloaded: `新版本 ${update.version ?? ''} 已下载`,
-    installing: '正在准备重启…',
-    'not-available': '已是最新版本',
-    error: update.error || '更新失败',
-  };
-  return (
-    <div className="update-panel" aria-live="polite">
-      <div>
-        <strong>版本更新</strong>
-        <p>
-          当前版本 v{update.currentVersion} · {statusText[update.status]}
-        </p>
-        {update.mode === 'manual' && update.status !== 'available' && (
-          <small>当前为手动安装模式，发现新版本后会打开下载链接。</small>
-        )}
-        {update.releaseNotes &&
-          (update.status === 'available' || update.status === 'downloaded') && (
-            <small>{update.releaseNotes}</small>
-          )}
-        {update.mode === 'manual' && update.status === 'available' && (
-          <small>下载后请退出句达，再打开安装包完成更新。</small>
-        )}
-      </div>
-      <div className="actions">
-        {update.status === 'available' && (
-          <Button disabled={busy} onClick={() => void run('downloadUpdate')}>
-            {update.mode === 'manual' ? <ArrowUpRight size={15} /> : <Download size={15} />}
-            {update.mode === 'manual' ? '打开下载链接' : '下载更新'}
-          </Button>
-        )}
-        {update.status === 'downloaded' && (
-          <Button disabled={busy} onClick={() => void run('installUpdate')}>
-            <RefreshCw size={15} /> 更新并重启
-          </Button>
-        )}
-        {update.status !== 'disabled' && update.status !== 'installing' && (
-          <Button
-            variant="secondary"
-            disabled={busy || update.status === 'downloading'}
-            onClick={() => void run('checkForUpdates')}
-          >
-            <RefreshCw size={15} /> 检查更新
-          </Button>
-        )}
-      </div>
-    </div>
-  );
-}
-export function SettingsPage({ state, onChooseAi }: { state: any; onChooseAi?: () => void }) {
+export function SettingsPage({ state }: { state: any }) {
   const { data: models = [] } = useData<any[]>('models.list');
-  const { data: account } = useData('license.state');
-  const canUseByok = !!account && (!account.configured || !!account.canUseByok);
   const [model, setModel] = useState<any>(null);
   const [testing, setTesting] = useState<string | null>(null);
   const [testResult, setTestResult] = useState<any>(null);
@@ -123,11 +39,6 @@ export function SettingsPage({ state, onChooseAi }: { state: any; onChooseAi?: (
           <p>管理模型连接、开发者功能与本地数据。各店接待配置在店铺管理中维护。</p>
         </div>
         <div className="setup-topbar-actions">
-          {onChooseAi && (
-            <Button variant="secondary" onClick={onChooseAi}>
-              选择 AI 服务
-            </Button>
-          )}
           <Button variant="secondary" onClick={() => void openSetupGuide()}>
             打开上手引导
             <ArrowUpRight size={15} />
@@ -140,6 +51,7 @@ export function SettingsPage({ state, onChooseAi }: { state: any; onChooseAi?: (
             ['models', '模型服务', '管理可选用的模型'],
             ['advanced', '高级定制', '助手、技能与业务扩展'],
             ['data', '数据与备份', '本地数据管理'],
+            ['appearance', '外观', '浅色、深色或跟随系统'],
           ].map(([id, title, detail]) => (
             <button
               key={id}
@@ -168,28 +80,17 @@ export function SettingsPage({ state, onChooseAi }: { state: any; onChooseAi?: (
                 <KeyRound size={21} />
                 <div>
                   <h3>模型服务</h3>
-                  <p>
-                    {canUseByok
-                      ? '可配置自有 API Key，或登录选用按量计费的云端 AI。'
-                      : '免费版请使用云端按量 AI；配置自有 API Key 需要句达 Pro。'}
-                  </p>
+                  <p>添加任意 OpenAI 兼容接口的对话模型或向量模型。</p>
                 </div>
-                <Button variant="secondary" onClick={() => ui.setPage('account')}>
-                  <Cloud size={15} /> {canUseByok ? '云端 AI' : '云端 AI / 开通 Pro'}
-                </Button>
                 <Button
                   variant="secondary"
                   onClick={() => {
-                    if (!canUseByok) {
-                      ui.setPage('account');
-                      return;
-                    }
                     setModel(defaultModel());
                     setModelError('');
                   }}
                 >
                   <Plus size={15} />
-                  {canUseByok ? '添加自有模型' : '开通 Pro 添加自有模型'}
+                  添加模型
                 </Button>
               </div>
               {models.length ? (
@@ -201,29 +102,17 @@ export function SettingsPage({ state, onChooseAi }: { state: any; onChooseAi?: (
                         <strong>{m.name}</strong>
                         <small>
                           {m.model} · {m.kind === 'embedding' ? 'Embedding' : '对话模型'}{' '}
-                          {m.source === 'cloud'
-                            ? '· 句达云端 AI'
-                            : m.hasKey
-                              ? '· 自有密钥'
-                              : '· 自有服务'}
+                          {m.hasKey ? '· 已保存密钥' : '· 无密钥'}
                         </small>
                       </div>
                       <Button
                         variant="ghost"
                         onClick={() => {
-                          if (m.source === 'cloud') {
-                            ui.setPage('account');
-                            return;
-                          }
-                          if (!canUseByok) {
-                            ui.setPage('account');
-                            return;
-                          }
                           setModel({ ...m, apiKey: '' });
                           setModelError('');
                         }}
                       >
-                        {m.source === 'cloud' ? '云端管理' : canUseByok ? '编辑' : '需 Pro'}
+                        编辑
                       </Button>
                       <Button
                         variant="ghost"
@@ -318,7 +207,7 @@ export function SettingsPage({ state, onChooseAi }: { state: any; onChooseAi?: (
                 </div>
               </details>
               <p className="hint">
-                测试会发起一次简短模型请求，云端 AI 按用量扣费。自有 API Key 使用操作系统加密存储。
+                测试会发起一次简短模型请求，由服务商按用量计费。API Key 使用操作系统加密存储。
               </p>
               {testResult && (
                 <p className="model-save-status" role="status">
@@ -361,6 +250,7 @@ export function SettingsPage({ state, onChooseAi }: { state: any; onChooseAi?: (
               )}
             </section>
           )}
+          {section === 'appearance' && <AppearanceSection />}
           {section === 'data' && (
             <section className="card settings-section">
               <div className="settings-title">
@@ -401,7 +291,7 @@ export function SettingsPage({ state, onChooseAi }: { state: any; onChooseAi?: (
                   导出诊断
                 </Button>
               </div>
-              <UpdatePanel />
+              <p className="hint">当前版本 v{state?.version}</p>
               <p className="hint">
                 账号 Cookie 和 API Key
                 不随知识或诊断导出。模型请求仍会将必要上下文发送给你配置的服务。
@@ -455,5 +345,42 @@ export function SettingsPage({ state, onChooseAi }: { state: any; onChooseAi?: (
         )}
       </Modal>
     </>
+  );
+}
+
+function AppearanceSection() {
+  const [theme, setTheme] = useState<ThemeChoice>(readTheme);
+  return (
+    <section className="card settings-section">
+      <div className="settings-title">
+        <Palette size={21} />
+        <div>
+          <h3>外观</h3>
+          <p>只影响本机显示，不随备份迁移。</p>
+        </div>
+      </div>
+      <div className="segmented" role="radiogroup" aria-label="界面主题">
+        {(
+          [
+            ['system', '跟随系统'],
+            ['light', '浅色'],
+            ['dark', '深色'],
+          ] as const
+        ).map(([value, label]) => (
+          <button
+            key={value}
+            role="radio"
+            aria-checked={theme === value}
+            className={theme === value ? 'active' : ''}
+            onClick={() => {
+              saveTheme(value);
+              setTheme(value);
+            }}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+    </section>
   );
 }

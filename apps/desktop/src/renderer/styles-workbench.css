@@ -2,7 +2,7 @@
   width: 100%;
   border: 1px solid var(--border);
   border-radius: 6px;
-  background: #fff;
+  background: var(--surface);
   padding: 8px;
   font-size: var(--fs-12);
   min-width: 0;
@@ -14,7 +14,7 @@
   border-left: 1px solid var(--border);
   display: flex;
   flex-direction: column;
-  background: #fff;
+  background: var(--surface);
 }
 .workbench-panel > .pane-heading {
   flex-shrink: 0;
