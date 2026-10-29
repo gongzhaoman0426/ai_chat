@@ -877,7 +877,7 @@ try {
   await waitForService(blank);
   assert.deepEqual(await blank.evaluate(() => window.judesk.call('stores.list')), []);
   assert.equal((await blank.evaluate(() => window.judesk.call('app.state'))).hasDefaultAgent, true);
-  await blank.getByRole('heading', { name: '选一种方式，让 AI 开始工作' }).waitFor();
+  await blank.getByRole('heading', { name: '连接你的模型服务' }).waitFor();
   await blank.screenshot({ path: '.artifacts/first-launch.png' });
   await blank.getByRole('button', { name: '稍后配置，先使用人工接待', exact: true }).click();
   assert.equal(

@@ -19,7 +19,7 @@ import { receptionState } from './reception';
 import { listStoreGoods } from './store-goods';
 import { onboardingState } from './onboarding';
 import { KnowledgeBootstrapService } from './knowledge-bootstrap';
-import { isCloudModel } from './license';
+import { isRetiredCloudModel } from './util';
 import { MastraAi } from '../../ai/src/index';
 import { assert, hash, uid } from './util';
 import { manifestSchema, type ScopedAssetContext } from '../../extension-sdk/src/index';
@@ -42,10 +42,6 @@ export class Router {
     assert(method in apiInputs, '未知业务方法');
     const input = apiInputs[method].parse(raw) as Record<string, any>;
     const { db, host } = this.engine;
-    if (method.startsWith('license.')) {
-      assert(this.engine.license, '云端账号服务尚未初始化');
-      return this.engine.license.handle(method, input);
-    }
     if (developerMethods.has(method))
       assert(
         (await db.appSetting.findUnique({ where: { key: 'developerModeEnabled' } }))?.value ===
@@ -699,17 +695,14 @@ export class Router {
         break;
       }
       case 'models.list':
-        result = (await db.modelProfile.findMany()).map(({ secretRef, ...m }) => ({
-          ...m,
-          hasKey: !!secretRef,
-          source: isCloudModel(m) ? 'cloud' : 'own',
-        }));
+        result = (await db.modelProfile.findMany())
+          .filter((m) => !isRetiredCloudModel(m))
+          .map(({ secretRef, ...m }) => ({ ...m, hasKey: !!secretRef }));
         break;
       case 'models.save': {
         const parsed = modelSchema.parse(input);
         const { id, apiKey, ...fields } = parsed;
-        assert(!isCloudModel({ id }), '云端模型由服务端管理，请重新选择云端模型或新增自有模型');
-        this.engine.license?.assertByokAllowed();
+        assert(!isRetiredCloudModel({ id }), '云端模型已停用，请新增 OpenAI 兼容模型');
         const old = id ? await db.modelProfile.findUniqueOrThrow({ where: { id } }) : null;
         const secretRef = apiKey
           ? await host.secretPut(apiKey, old?.secretRef ?? undefined)

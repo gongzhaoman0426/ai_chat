@@ -1,6 +1,5 @@
 import { WorkspaceNavigation } from './components/workspace-navigation';
 import { StoresPage } from './pages-stores';
-import { AccountPage } from './pages-account';
 import { ServiceWelcome } from './pages-welcome';
 import React, { useEffect, useRef, useState } from 'react';
 import type { OnboardingState } from '../../../../packages/core/src/onboarding';
@@ -28,7 +27,6 @@ const pageTitles = {
   learning: '学习审核',
   stores: '店铺管理',
   settings: '系统设置',
-  account: '云端 AI',
   agents: 'Agent Studio',
   skills: 'Skills',
   toolkits: 'Toolkit',
@@ -42,14 +40,12 @@ function App() {
   const { data: state, error, refetch } = useData('app.state');
   const { data: models } = useData<any[]>('models.list');
   const [welcomeDone, setWelcomeDone] = useState(false);
-  const [serviceChoiceOpen, setServiceChoiceOpen] = useState(false);
   const { data: stores = [], isSuccess: storesLoaded } = useData<any[]>('stores.list');
   const linkedStores = stores.filter((s) => s.accounts?.length);
   const store = linkedStores.find((s) => s.id === ui.storeId) ?? linkedStores[0];
   const developer = state?.settings?.developerModeEnabled === true;
   const needsWelcome =
-    serviceChoiceOpen ||
-    (!welcomeDone && !!state && !!models && storesLoaded && !state.settings?.aiSetupMode);
+    !welcomeDone && !!state && !!models && storesLoaded && !state.settings?.aiSetupMode;
   const {
     data: guide,
     error: guideError,
@@ -110,10 +106,7 @@ function App() {
       <ServiceWelcome
         hasExistingConfiguration={!!models?.length || !!stores.length}
         savedMode={state?.settings?.aiSetupMode}
-        onContinue={() => {
-          setWelcomeDone(true);
-          setServiceChoiceOpen(false);
-        }}
+        onContinue={() => setWelcomeDone(true)}
       />
     );
   if (
@@ -142,7 +135,6 @@ function App() {
           stores={linkedStores}
           refresh={refreshGuide}
           loading={guideRefreshing}
-          onChooseAi={() => setServiceChoiceOpen(true)}
         />
         {ui.toast && (
           <div className="toast" role="status">
@@ -190,9 +182,7 @@ function App() {
                 </Button>
               </div>
             )}
-            {ui.page === 'account' ? (
-              <AccountPage />
-            ) : ui.page === 'inbox' ? (
+            {ui.page === 'inbox' ? (
               <Inbox />
             ) : ui.page === 'stores' ? (
               <StoresPage stores={linkedStores} state={state} />
@@ -213,7 +203,7 @@ function App() {
             ) : ui.page === 'runs' && developer ? (
               <AgentRuns store={store} />
             ) : (
-              <SettingsPage state={state} onChooseAi={() => setServiceChoiceOpen(true)} />
+              <SettingsPage state={state} />
             )}
           </div>
         )}

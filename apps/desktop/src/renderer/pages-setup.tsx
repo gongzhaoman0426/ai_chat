@@ -38,13 +38,11 @@ export function SetupGuide({
   stores,
   refresh,
   loading = false,
-  onChooseAi,
 }: {
   data: OnboardingState;
   stores: any[];
   refresh: () => unknown;
   loading?: boolean;
-  onChooseAi?: () => void;
 }) {
   const ui = useUi();
   const platforms = useAvailablePlatforms();
@@ -112,11 +110,6 @@ export function SetupGuide({
           <Badge>接待配置</Badge>
         </div>
         <div className="setup-topbar-actions">
-          {onChooseAi && (
-            <Button variant="secondary" disabled={!!busy} onClick={onChooseAi}>
-              选择 AI 服务
-            </Button>
-          )}
           <Button variant="ghost" disabled={!!busy} onClick={() => void leave('inbox', complete)}>
             {complete || data.enabled ? '返回接待中心' : '先人工接待，稍后配置'}
             <ArrowRight size={15} />

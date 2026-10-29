@@ -8,9 +8,6 @@ importers:
 
   .:
     dependencies:
-      '@judesk/license-client':
-        specifier: file:../judesk-license/packages/client
-        version: file:../judesk-license/packages/client
       '@libsql/client':
         specifier: ^0.17.0
         version: 0.17.4
@@ -844,9 +841,6 @@ packages:
 
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
-
-  '@judesk/license-client@file:../judesk-license/packages/client':
-    resolution: {directory: ../judesk-license/packages/client, type: directory}
 
   '@libsql/client@0.17.4':
     resolution: {integrity: sha512-lYayFWasDV78A+TjlEhr6ubb3odBV6OHjb+wdp8VQcyWWAEIjuwbCHaraEUS4m4yWoo0BvZo96It4VdzZRmRWw==}
@@ -4402,8 +4396,6 @@ snapshots:
     dependencies:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.6.0
-
-  '@judesk/license-client@file:../judesk-license/packages/client': {}
 
   '@libsql/client@0.17.4':
     dependencies:

@@ -51,7 +51,6 @@ let ready = false;
 let updateManager: UpdateManager;
 let stoppingRuntime: Promise<void> | undefined;
 let preparingDatabase: Promise<void> | undefined;
-let licenseConfig: { serverUrl?: string } = {};
 let failures = 0;
 const pending = new Map<
   string,
@@ -418,7 +417,6 @@ function startService() {
     dir: dataDir,
     nodeExecutable: process.execPath,
     appVersion: app.getVersion(),
-    licenseConfig,
   });
 }
 app.whenReady().then(async () => {
@@ -589,18 +587,6 @@ app.whenReady().then(async () => {
     ),
   });
   try {
-    try {
-      const path =
-        !app.isPackaged && process.env.JUDESK_LICENSE_CONFIG
-          ? resolve(process.env.JUDESK_LICENSE_CONFIG)
-          : resource('license.json');
-      const value = JSON.parse(await readFile(path, 'utf8'));
-      if (typeof value.serverUrl !== 'string') throw new Error('云端 AI 配置缺少服务地址');
-      licenseConfig = { serverUrl: value.serverUrl };
-    } catch (e) {
-      if ((e as NodeJS.ErrnoException).code !== 'ENOENT')
-        console.warn('云端 AI 配置不可用，将使用本地模式');
-    }
     if (quitting) return;
     preparingDatabase = migrate();
     await preparingDatabase;

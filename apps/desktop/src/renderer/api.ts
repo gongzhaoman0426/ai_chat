@@ -35,10 +35,7 @@ export const invalidateLocalData = () =>
   client.invalidateQueries({
     predicate: (q) => {
       const method = String(q.queryKey[0]);
-      return (
-        method !== 'workbench.query' &&
-        (!method.startsWith('license.') || method === 'license.state')
-      );
+      return method !== 'workbench.query';
     },
   });
 type Page =
@@ -53,8 +50,7 @@ type Page =
   | 'workflows'
   | 'bindings'
   | 'runs'
-  | 'settings'
-  | 'account';
+  | 'settings';
 export const useUi = create<{
   inboxStoreId: string | null;
   setInboxStore: (id: string | null) => void;

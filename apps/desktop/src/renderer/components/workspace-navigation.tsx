@@ -13,7 +13,6 @@ import {
   Activity,
   ChevronDown,
   CircleHelp,
-  UserRound,
   PanelLeftClose,
 } from 'lucide-react';
 import { useUi } from '../api';
@@ -91,12 +90,11 @@ export function WorkspaceNavigation({ developer }: { developer: boolean }) {
           </>
         )}
       </div>
-      <nav className="workspace-nav-bottom" aria-label="帮助与账号">
+      <nav className="workspace-nav-bottom" aria-label="帮助">
         <button onClick={() => void openSetupGuide()} aria-label="上手引导" title="上手引导">
           <CircleHelp size={18} />
           <span>上手引导</span>
         </button>
-        {item('account', '云端 AI', UserRound)}
         <button
           className="nav-collapse"
           aria-label={compact ? '展开导航' : '收起导航'}

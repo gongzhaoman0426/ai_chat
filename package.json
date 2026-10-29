@@ -19,7 +19,6 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "node scripts/electron-smoke.mjs",
-    "test:cloud": "node scripts/free-cloud-smoke.mjs",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate deploy",
     "pack": "pnpm build && electron-builder --dir",
@@ -31,7 +30,6 @@
     "icons": "electron scripts/render-icons.mjs"
   },
   "dependencies": {
-    "@judesk/license-client": "file:../judesk-license/packages/client",
     "@libsql/client": "^0.17.0",
     "@mastra/core": "1.64.0",
     "@mastra/libsql": "1.22.3",

@@ -161,7 +161,6 @@ try {
     ...process.env,
     JUDESK_DATA_DIR: dir,
     JUDESK_SMOKE_TEST: '1',
-    JUDESK_LICENSE_CONFIG: join(dir, 'cloud-disabled.json'),
   };
   delete env.ELECTRON_RUN_AS_NODE;
   app = await electron.launch({
@@ -335,7 +334,6 @@ try {
     ['knowledge', '问答库'],
     ['stores', '店铺管理'],
     ['settings', '系统设置'],
-    ['account', '云端 AI'],
   ]) {
     await nav.getByRole('button', { name: button, exact: true }).click();
     await page.locator(`.page-${name === 'settings' ? 'settings' : name}`).waitFor();
@@ -464,14 +462,6 @@ try {
   await resize(1280, 800);
   await capture('inbox-orders-1280');
   await resize(1440, 960);
-  await nav.getByRole('button', { name: '系统设置', exact: true }).click();
-  await page.getByRole('button', { name: '选择 AI 服务', exact: true }).click();
-  await page.getByRole('heading', { name: '选一种方式，让 AI 开始工作', exact: true }).waitFor();
-  await capture('welcome-1440');
-  await resize(1100, 800);
-  await capture('welcome-1100');
-  await resize(1440, 960);
-  await page.getByRole('button', { name: '保留现有配置，继续使用', exact: true }).click();
   await nav.getByRole('button', { name: '上手引导', exact: true }).click();
   await page.locator('.setup-shell').waitFor();
   await capture('onboarding-1440');

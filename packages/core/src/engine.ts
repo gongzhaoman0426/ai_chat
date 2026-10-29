@@ -5,7 +5,6 @@ import {
   richActionCapabilities,
   type RichContent,
 } from '../../contracts/src/commerce-extra';
-import type { DesktopLicense } from './license';
 import {
   resolveRuntimeToolkits,
   assetSettingsRows,
@@ -39,7 +38,7 @@ import {
 } from './learning-evidence';
 import { humanLearningContext, HUMAN_LEARNING_SETTLE_MS } from './human-learning';
 import { BUILTIN_LEARNING_VERSION, type AiPort, type AppHost, type KnowledgeMatch } from './types';
-import { DomainError, Mutex, assert, hash, uid, errorText } from './util';
+import { DomainError, Mutex, assert, hash, uid, errorText, isRetiredCloudModel } from './util';
 const mutableJobs = ['pending', 'retry_wait', 'running'];
 export class Engine {
   readonly lock = new Mutex();
@@ -64,7 +63,6 @@ export class Engine {
       lastError: this.schedulerError,
     };
   }
-  license?: DesktopLicense;
   onChanged = () => {};
   constructor(
     readonly db: PrismaClient,
@@ -76,11 +74,25 @@ export class Engine {
     this.agents = new AgentService(db);
     this.knowledge = new KnowledgeService(db, this.lock, dir, host);
   }
+  // Workspaces from builds with hosted AI may still point at `cloud:` profiles; send them back
+  // to the model setup step instead of failing at reply time.
+  private async retireCloudSettings() {
+    const settings = await this.db.appSetting.findMany({
+      where: { key: { in: ['defaultModelId', 'embeddingProfileId', 'aiSetupMode'] } },
+    });
+    const stale = settings
+      .filter((s) =>
+        s.key === 'aiSetupMode' ? s.value === 'cloud' : isRetiredCloudModel({ id: s.value }),
+      )
+      .map((s) => s.key);
+    if (stale.length) await this.db.appSetting.deleteMany({ where: { key: { in: stale } } });
+  }
   async initialize() {
     this.viewedConversationId = null;
     await this.agents.initialize();
     await this.agents.retirePddToolkits();
     await this.agents.upgradeBuiltinDefaults();
+    await this.retireCloudSettings();
     await this.lock.run(() =>
       this.db.$transaction(async (tx) => {
         await tx.aiRunStep.updateMany({

@@ -56,7 +56,6 @@ let app;
 try {
   const env = { ...process.env, JUDESK_DATA_DIR: dir, JUDESK_SMOKE_TEST: '1' };
   delete env.ELECTRON_RUN_AS_NODE;
-  delete env.JUDESK_LICENSE_CONFIG;
   app = await electron.launch({ args: [resolve('out/main/bootstrap.js')], env, timeout: 60000 });
   const page = await app.firstWindow();
   await page

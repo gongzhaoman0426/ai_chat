@@ -12,7 +12,6 @@ import {
   Play,
   CheckCircle2,
   ArrowUpRight,
-  Cloud,
   RefreshCw,
 } from 'lucide-react';
 import { api, client, useData, perform, useUi } from './api';
@@ -101,10 +100,8 @@ function UpdatePanel() {
     </div>
   );
 }
-export function SettingsPage({ state, onChooseAi }: { state: any; onChooseAi?: () => void }) {
+export function SettingsPage({ state }: { state: any }) {
   const { data: models = [] } = useData<any[]>('models.list');
-  const { data: account } = useData('license.state');
-  const canUseByok = !!account && (!account.configured || !!account.canUseByok);
   const [model, setModel] = useState<any>(null);
   const [testing, setTesting] = useState<string | null>(null);
   const [testResult, setTestResult] = useState<any>(null);
@@ -123,11 +120,6 @@ export function SettingsPage({ state, onChooseAi }: { state: any; onChooseAi?: (
           <p>管理模型连接、开发者功能与本地数据。各店接待配置在店铺管理中维护。</p>
         </div>
         <div className="setup-topbar-actions">
-          {onChooseAi && (
-            <Button variant="secondary" onClick={onChooseAi}>
-              选择 AI 服务
-            </Button>
-          )}
           <Button variant="secondary" onClick={() => void openSetupGuide()}>
             打开上手引导
             <ArrowUpRight size={15} />
@@ -168,28 +160,17 @@ export function SettingsPage({ state, onChooseAi }: { state: any; onChooseAi?: (
                 <KeyRound size={21} />
                 <div>
                   <h3>模型服务</h3>
-                  <p>
-                    {canUseByok
-                      ? '可配置自有 API Key，或登录选用按量计费的云端 AI。'
-                      : '免费版请使用云端按量 AI；配置自有 API Key 需要句达 Pro。'}
-                  </p>
+                  <p>添加任意 OpenAI 兼容接口的对话模型或向量模型。</p>
                 </div>
-                <Button variant="secondary" onClick={() => ui.setPage('account')}>
-                  <Cloud size={15} /> {canUseByok ? '云端 AI' : '云端 AI / 开通 Pro'}
-                </Button>
                 <Button
                   variant="secondary"
                   onClick={() => {
-                    if (!canUseByok) {
-                      ui.setPage('account');
-                      return;
-                    }
                     setModel(defaultModel());
                     setModelError('');
                   }}
                 >
                   <Plus size={15} />
-                  {canUseByok ? '添加自有模型' : '开通 Pro 添加自有模型'}
+                  添加模型
                 </Button>
               </div>
               {models.length ? (
@@ -201,29 +182,17 @@ export function SettingsPage({ state, onChooseAi }: { state: any; onChooseAi?: (
                         <strong>{m.name}</strong>
                         <small>
                           {m.model} · {m.kind === 'embedding' ? 'Embedding' : '对话模型'}{' '}
-                          {m.source === 'cloud'
-                            ? '· 句达云端 AI'
-                            : m.hasKey
-                              ? '· 自有密钥'
-                              : '· 自有服务'}
+                          {m.hasKey ? '· 已保存密钥' : '· 无密钥'}
                         </small>
                       </div>
                       <Button
                         variant="ghost"
                         onClick={() => {
-                          if (m.source === 'cloud') {
-                            ui.setPage('account');
-                            return;
-                          }
-                          if (!canUseByok) {
-                            ui.setPage('account');
-                            return;
-                          }
                           setModel({ ...m, apiKey: '' });
                           setModelError('');
                         }}
                       >
-                        {m.source === 'cloud' ? '云端管理' : canUseByok ? '编辑' : '需 Pro'}
+                        编辑
                       </Button>
                       <Button
                         variant="ghost"
@@ -318,7 +287,7 @@ export function SettingsPage({ state, onChooseAi }: { state: any; onChooseAi?: (
                 </div>
               </details>
               <p className="hint">
-                测试会发起一次简短模型请求，云端 AI 按用量扣费。自有 API Key 使用操作系统加密存储。
+                测试会发起一次简短模型请求，由服务商按用量计费。API Key 使用操作系统加密存储。
               </p>
               {testResult && (
                 <p className="model-save-status" role="status">
