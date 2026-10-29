@@ -9,6 +9,7 @@ import {
   type ResourceScopeRecord,
 } from '../../../../packages/contracts/src/resource-scope';
 import type { SkillRecord } from '../../../../packages/contracts/src/index';
+import { platformNames, type PlatformId } from '../../../../packages/contracts/src/platform';
 import { useState } from 'react';
 import {
   Bot,
@@ -31,7 +32,22 @@ import { publicationStatus } from './components/agent-studio/draft';
 
 export function Agents() {
   const { data: catalog } = useData<{ agents: AgentRecord[]; bindings?: any[] }>('agents.list');
-  const globalBinding = catalog?.bindings?.find((b: any) => b.scopeKey === 'global');
+  const { data: stores = [] } = useData<any[]>('stores.list');
+  // Same scopes as the store manager: only stores with a connected account can be assigned.
+  const scopes = [
+    {
+      id: 'global',
+      name: '全局默认助手',
+      description: '没有单独指定助手的店铺都使用这里的选择。',
+    },
+    ...stores
+      .filter((s) => s.accounts?.length)
+      .map((s) => ({
+        id: `store:${s.id}`,
+        name: s.name,
+        description: `${platformNames[s.platform as PlatformId]} · 店铺专用助手`,
+      })),
+  ];
   const { data: models = [] } = useData<ModelOption[]>('models.list');
   const { data: resources } = useData<{
     assets: AssetOption[];
@@ -57,18 +73,25 @@ export function Agents() {
       </div>
       <div className="page-body">
         {catalog && (
-          <div className="binding-list">
-            <Binding
-              key={`global:${globalBinding?.revision}`}
-              scope={{
-                id: 'global',
-                name: '全局默认助手',
-                description: '没有单独指定助手的店铺都使用这里的选择。各店可在店铺管理中单独指定。',
-              }}
-              catalog={catalog}
-            />
-          </div>
+          <section className="section-space" aria-label="店铺分配">
+            <div className="eyebrow">店铺分配</div>
+            <p className="hint">
+              每家店铺可以使用全局默认助手，也可以单独指定。选「继承全局默认」即改回跟随全局。
+            </p>
+            <div className="binding-list">
+              {scopes.map((scope) => (
+                <Binding
+                  key={`${scope.id}:${
+                    catalog.bindings?.find((b: any) => b.scopeKey === scope.id)?.revision
+                  }`}
+                  scope={scope}
+                  catalog={catalog}
+                />
+              ))}
+            </div>
+          </section>
         )}
+        <div className="eyebrow section-space">全部助手</div>
         <div className="agent-grid">
           {catalog?.agents.map((agent) => (
             <button className="agent-card card" key={agent.id} onClick={() => setSelected(agent)}>
@@ -127,7 +150,7 @@ export function Agents() {
           <div className="agent-publish-note-copy">
             <strong>发布后，使用中的店铺自动更新</strong>
             <p>
-              编辑会自动保存为草稿，点击发布后统一生效。全局默认在上方选择，单个店铺可在店铺管理的「当前接待配置」中单独指定。
+              编辑会自动保存为草稿，点击发布后统一生效。各店铺使用哪个助手在上方「店铺分配」中集中设置，也可以在店铺管理里单独修改。
             </p>
           </div>
         </aside>
