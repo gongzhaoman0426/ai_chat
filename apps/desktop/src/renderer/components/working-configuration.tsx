@@ -1,6 +1,7 @@
 import type { WorkingConfiguration } from '../../../../../packages/core/src/working-configuration';
 import { useData, useUi } from '../api';
 import { Badge, Button } from './ui';
+import { Binding } from '../pages-agents';
 
 const kindNames = { skill: 'Skill', toolkit: 'Toolkit', workflow: 'Workflow', agent: '子 Agent' };
 export function WorkingConfigurationCard({
@@ -25,10 +26,9 @@ export function WorkingConfigurationCard({
     }
     if (target === 'accounts' || target === 'models') openSection(target);
     else if (!developerMode) openSection('advanced');
-    else
-      useUi
-        .getState()
-        .setPage(target as 'agents' | 'bindings' | 'toolkits' | 'workflows' | 'skills');
+    // Store bindings are chosen in this card; the global default lives on the agents page.
+    else if (target === 'bindings') useUi.getState().setPage('agents');
+    else useUi.getState().setPage(target as 'agents' | 'toolkits' | 'workflows' | 'skills');
   };
   if (error)
     return (
@@ -154,14 +154,39 @@ export function WorkingConfigurationCard({
           <p className="hint">当前没有挂载资源。</p>
         )}
       </details>
+      {developerMode && <StoreBinding storeId={storeId} />}
       <div className="working-config-actions">
         <Button variant="ghost" onClick={() => navigate('agents')}>
           编辑客服助手
         </Button>
-        <Button variant="ghost" onClick={() => navigate('bindings')}>
-          切换工作 Agent
-        </Button>
+        {!developerMode && (
+          <Button variant="ghost" onClick={() => navigate('bindings')}>
+            切换工作 Agent
+          </Button>
+        )}
       </div>
     </section>
+  );
+}
+
+function StoreBinding({ storeId }: { storeId: string }) {
+  const { data: catalog } = useData<{ bindings?: any[] }>('agents.list');
+  const { data: stores = [] } = useData<any[]>('stores.list');
+  if (!catalog) return null;
+  const store = stores.find((s) => s.id === storeId);
+  const scopeKey = `store:${storeId}`;
+  const binding = catalog.bindings?.find((b: any) => b.scopeKey === scopeKey);
+  return (
+    <div className="binding-list">
+      <Binding
+        key={`${scopeKey}:${binding?.revision}`}
+        scope={{
+          id: scopeKey,
+          name: store?.name || '本店',
+          description: '本店专用助手，优先于全局默认。',
+        }}
+        catalog={catalog}
+      />
+    </div>
   );
 }

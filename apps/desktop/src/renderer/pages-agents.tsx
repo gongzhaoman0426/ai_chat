@@ -8,7 +8,6 @@ import {
   scopeAllows,
   type ResourceScopeRecord,
 } from '../../../../packages/contracts/src/resource-scope';
-import { platformNames, type PlatformId } from '../../../../packages/contracts/src/platform';
 import type { SkillRecord } from '../../../../packages/contracts/src/index';
 import { useState } from 'react';
 import {
@@ -31,7 +30,8 @@ import type { AgentRecord, AssetOption, ModelOption } from './components/agent-s
 import { publicationStatus } from './components/agent-studio/draft';
 
 export function Agents() {
-  const { data: catalog } = useData<{ agents: AgentRecord[] }>('agents.list');
+  const { data: catalog } = useData<{ agents: AgentRecord[]; bindings?: any[] }>('agents.list');
+  const globalBinding = catalog?.bindings?.find((b: any) => b.scopeKey === 'global');
   const { data: models = [] } = useData<ModelOption[]>('models.list');
   const { data: resources } = useData<{
     assets: AssetOption[];
@@ -45,7 +45,7 @@ export function Agents() {
       <div className="page-heading">
         <div>
           <div className="eyebrow">AGENT STUDIO</div>
-          <h1>Agent Studio</h1>
+          <h1>助手</h1>
           <p>配置回复方式，挂载技能、工具、流程和子 Agent。学习使用独立内置 Agent。</p>
         </div>
         <div className="actions">
@@ -56,6 +56,19 @@ export function Agents() {
         </div>
       </div>
       <div className="page-body">
+        {catalog && (
+          <div className="binding-list">
+            <Binding
+              key={`global:${globalBinding?.revision}`}
+              scope={{
+                id: 'global',
+                name: '全局默认助手',
+                description: '没有单独指定助手的店铺都使用这里的选择。各店可在店铺管理中单独指定。',
+              }}
+              catalog={catalog}
+            />
+          </div>
+        )}
         <div className="agent-grid">
           {catalog?.agents.map((agent) => (
             <button className="agent-card card" key={agent.id} onClick={() => setSelected(agent)}>
@@ -114,14 +127,9 @@ export function Agents() {
           <div className="agent-publish-note-copy">
             <strong>发布后，使用中的店铺自动更新</strong>
             <p>
-              编辑会自动保存为草稿，点击发布后统一生效。首次安排店铺使用哪个
-              Agent，在工作绑定中选择。
+              编辑会自动保存为草稿，点击发布后统一生效。全局默认在上方选择，单个店铺可在店铺管理的「当前接待配置」中单独指定。
             </p>
           </div>
-          <Button variant="ghost" onClick={() => useUi.getState().setPage('bindings')}>
-            前往工作绑定
-            <ArrowRight size={14} />
-          </Button>
         </aside>
       </div>
       {creating && (
@@ -161,11 +169,26 @@ export function Assets({ kind }: { kind: 'toolkit' | 'workflow' }) {
     <>
       <div className="page-heading">
         <div>
-          <div className="eyebrow">{label.toUpperCase()} LIBRARY</div>
-          <h1>
-            {kind === 'toolkit' ? 'Toolkit 工具库' : 'Workflow 流程库'}
-            <span className="title-dot">.</span>
-          </h1>
+          <div className="eyebrow">EXTENSIONS</div>
+          <h1>扩展</h1>
+          <div className="segmented library-tabs" role="tablist" aria-label="扩展类型">
+            {(
+              [
+                ['toolkits', 'toolkit', 'Toolkit 工具库'],
+                ['workflows', 'workflow', 'Workflow 流程库'],
+              ] as const
+            ).map(([page, k, title]) => (
+              <button
+                key={page}
+                role="tab"
+                aria-selected={kind === k}
+                className={kind === k ? 'active' : ''}
+                onClick={() => useUi.getState().setPage(page)}
+              >
+                {title}
+              </button>
+            ))}
+          </div>
           <p>
             {kind === 'toolkit'
               ? '挂载一次，自动使用已安装、已启用的最新版。更新工具包后无需重新发布 Agent。'
@@ -339,50 +362,7 @@ export function Assets({ kind }: { kind: 'toolkit' | 'workflow' }) {
     </>
   );
 }
-export function Bindings({ stores }: { stores: any[] }) {
-  const { data } = useData('agents.list');
-  return (
-    <>
-      <div className="page-heading">
-        <div>
-          <div className="eyebrow">WORKING AGENTS</div>
-          <h1>工作绑定</h1>
-          <p>
-            为店铺选择一个已发布的 Agent。店铺专用设置优先，没有专用设置时继承全局；Agent
-            重新发布后，所有使用它的店铺自动更新。
-          </p>
-        </div>
-      </div>
-      <div className="page-body">
-        <div className="binding-list">
-          {[
-            {
-              id: 'global',
-              name: '全局默认回复',
-              description: '所有未设置专用 Agent 的店铺使用此配置',
-            },
-            ...stores.map((s) => ({
-              id: `store:${s.id}`,
-              name: s.name,
-              description: `${platformNames[s.platform as PlatformId]} · 店铺专用回复设置`,
-            })),
-          ].map((s) => (
-            <Binding
-              key={`${s.id}:${data?.bindings?.find((b: any) => b.scopeKey === s.id)?.revision}`}
-              scope={s}
-              catalog={data}
-            />
-          ))}
-        </div>
-        <div className="info-line">
-          <SparklesIcon />
-          内置学习 Agent 不在此选择；学习开关和模型在店铺管理的自动接待中设置。
-        </div>
-      </div>
-    </>
-  );
-}
-function Binding({ scope, catalog }: { scope: any; catalog: any }) {
+export function Binding({ scope, catalog }: { scope: any; catalog: any }) {
   const { data: scopes = [], isSuccess: scopesLoaded } =
     useData<ResourceScopeRecord[]>('resources.scopes');
   const binding = catalog?.bindings?.find((b: any) => b.scopeKey === scope.id);
@@ -447,4 +427,3 @@ function Binding({ scope, catalog }: { scope: any; catalog: any }) {
     </div>
   );
 }
-const SparklesIcon = () => <Bot size={16} />;

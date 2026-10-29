@@ -8,7 +8,6 @@ import { SkillPicker } from '../skills/picker';
 import { useEffect, useRef, useState } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import {
-  ArrowRight,
   Blocks,
   BookOpenText,
   Bot,
@@ -934,20 +933,6 @@ export function AgentStudio({
               <ShieldCheck size={13} />
               草稿自动保存。点击发布，所有使用此 Agent 的店铺自动更新。
             </span>
-            <Button
-              variant="ghost"
-              disabled={!!busy}
-              onClick={() =>
-                void run('bindings', async () => {
-                  await editor.flush();
-                  onClose();
-                  useUi.getState().setPage('bindings');
-                })
-              }
-            >
-              前往工作绑定
-              <ArrowRight size={14} />
-            </Button>
           </footer>
 
           {pickingSkills && (

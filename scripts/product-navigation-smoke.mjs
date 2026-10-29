@@ -225,11 +225,9 @@ export async function checkProductNavigation({ app, page, accounts, dir }) {
   await page.getByRole('tab', { name: '高级定制', exact: false }).click();
   await page.getByRole('switch', { name: '显示开发者工具', exact: true }).click();
   for (const [label, heading] of [
-    ['Agent Studio', 'Agent Studio'],
+    ['助手', '助手'],
     ['Skills', 'Skills 技能库'],
-    ['Toolkit', 'Toolkit 工具库'],
-    ['Workflow', 'Workflow 流程库'],
-    ['工作绑定', '工作绑定'],
+    ['扩展', '扩展'],
     ['Agent 执行', 'Agent 执行'],
   ]) {
     await nav.getByRole('button', { name: label, exact: true }).click();
@@ -239,7 +237,7 @@ export async function checkProductNavigation({ app, page, accounts, dir }) {
       false,
     );
   }
-  await nav.getByRole('button', { name: 'Agent Studio', exact: true }).click();
+  await nav.getByRole('button', { name: '助手', exact: true }).click();
   await page.screenshot({ path: '.artifacts/product-studio.png', animations: 'disabled' });
 
   // At the smallest supported size, shop selection and the conversation remain usable.

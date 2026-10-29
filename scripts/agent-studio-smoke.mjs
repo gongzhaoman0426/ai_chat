@@ -21,7 +21,7 @@ export async function checkAgentStudio({ app, page, modelId, modelCalls }) {
       expectedRevision: child.draftRevision,
     });
   }, modelId);
-  await page.getByRole('button', { name: 'Agent Studio', exact: true }).click();
+  await page.getByRole('button', { name: '助手', exact: true }).click();
   await page.getByRole('button', { name: '新建 Agent', exact: true }).click();
   const create = page.getByRole('dialog', { name: '创建 Agent', exact: true });
   assert.equal(await create.getByRole('button', { name: '创建并编排' }).isDisabled(), true);
@@ -237,9 +237,9 @@ export async function checkAgentStudio({ app, page, modelId, modelCalls }) {
     bindingsBefore,
     'publishing/restoring/editing do not activate a different working agent',
   );
-  await page.getByRole('button', { name: '工作绑定', exact: true }).click();
+  await page.getByRole('button', { name: '助手', exact: true }).click();
   assert.equal(await page.getByLabel('回复策略入口', { exact: true }).count(), 0);
-  const globalBinding = page.locator('.binding-card').filter({ hasText: '全局默认回复' });
+  const globalBinding = page.locator('.binding-card').filter({ hasText: '全局默认助手' });
   assert.equal(await globalBinding.locator('select').count(), 1);
   assert.doesNotMatch(await globalBinding.locator('select').innerText(), /· v\d+/);
   const options = await globalBinding

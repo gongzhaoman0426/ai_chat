@@ -13,7 +13,7 @@ import { Button } from './components/ui';
 import { Inbox } from './pages-inbox';
 import { Knowledge, Learning } from './pages-knowledge';
 import { Skills } from './pages-skills';
-import { Agents, Assets, Bindings } from './pages-agents';
+import { Agents, Assets } from './pages-agents';
 import { SettingsPage } from './pages-settings';
 import { AgentRuns } from './pages-runs';
 import './styles.css';
@@ -27,11 +27,10 @@ const pageTitles = {
   learning: '学习审核',
   stores: '店铺管理',
   settings: '系统设置',
-  agents: 'Agent Studio',
+  agents: '助手',
   skills: 'Skills',
-  toolkits: 'Toolkit',
-  workflows: 'Workflow',
-  bindings: '工作绑定',
+  toolkits: '扩展',
+  workflows: '扩展',
   runs: 'Agent 执行',
   setup: '上手引导',
 };
@@ -85,10 +84,7 @@ function App() {
     if (!linkedStores.length && ui.storeId) useUi.setState({ storeId: '' });
   }, [linkedStores, ui.storeId]);
   useEffect(() => {
-    if (
-      !developer &&
-      ['agents', 'skills', 'toolkits', 'workflows', 'bindings', 'runs'].includes(ui.page)
-    )
+    if (!developer && ['agents', 'skills', 'toolkits', 'workflows', 'runs'].includes(ui.page))
       ui.setPage('inbox');
   }, [developer, ui.page]);
   useEffect(() => {
@@ -198,8 +194,6 @@ function App() {
               <Assets key="toolkit" kind="toolkit" />
             ) : ui.page === 'workflows' ? (
               <Assets key="workflow" kind="workflow" />
-            ) : ui.page === 'bindings' ? (
-              <Bindings stores={linkedStores} />
             ) : ui.page === 'runs' && developer ? (
               <AgentRuns store={store} />
             ) : (

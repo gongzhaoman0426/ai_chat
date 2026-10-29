@@ -83,14 +83,16 @@ export async function checkProductImprovements({ page, dbFile }) {
         toolkitIds: ['builtin/commerce@1.0.0'],
       },
     });
-    await page.getByRole('button', { name: 'Agent Studio', exact: true }).click();
+    await page.getByRole('button', { name: '助手', exact: true }).click();
     await page.locator('.agent-card').filter({ hasText: '接待配置验收助手' }).click();
     const studio = page.locator('.agent-studio-dialog');
     await studio.getByRole('button', { name: '发布', exact: true }).click();
     await studio.locator('.studio-statusbar').getByText('已发布', { exact: true }).waitFor();
     await studio.getByRole('button', { name: '关闭 Agent 编辑器', exact: true }).click();
-    await page.getByRole('button', { name: '工作绑定', exact: true }).click();
-    const binding = page.locator('.binding-card').filter({ hasText: '山野生活旗舰店' });
+    await page.getByRole('button', { name: '店铺管理', exact: true }).click();
+    await page.getByText('查看当前生效配置与工具', { exact: true }).click();
+    const card = page.getByRole('region', { name: '当前接待配置', exact: true }).first();
+    const binding = card.locator('.binding-card').filter({ hasText: '山野生活旗舰店' });
     await binding.getByLabel('工作回复 Agent', { exact: true }).selectOption(agent.id);
     await binding.getByRole('button', { name: '应用配置', exact: true }).click();
     await page.locator('.toast').getByText('工作绑定已切换').waitFor();
@@ -98,9 +100,6 @@ export async function checkProductImprovements({ page, dbFile }) {
     assert.equal(overview.agent.id, agent.id);
     assert.equal(overview.agent.source, 'store');
     assert.equal(overview.agent.draftChanged, false);
-    await page.getByRole('button', { name: '店铺管理', exact: true }).click();
-    await page.getByText('查看当前生效配置与工具', { exact: true }).click();
-    const card = page.getByRole('region', { name: '当前接待配置', exact: true }).first();
     await card.getByText('接待配置验收助手', { exact: true }).first().waitFor();
     await card.locator('.working-config-resources > summary').click();
     await card.getByText('店铺客服工具', { exact: true }).waitFor();

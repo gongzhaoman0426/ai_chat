@@ -48,7 +48,6 @@ type Page =
   | 'skills'
   | 'toolkits'
   | 'workflows'
-  | 'bindings'
   | 'runs'
   | 'settings';
 export const useUi = create<{

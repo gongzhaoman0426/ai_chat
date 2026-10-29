@@ -5,7 +5,10 @@ import AdmZip from 'adm-zip';
 
 export async function checkSkills({ app, page, modelId, modelCalls }) {
   for (const kind of ['Toolkit', 'Workflow']) {
-    await page.getByRole('button', { name: kind, exact: true }).click();
+    await page.getByRole('button', { name: '扩展', exact: true }).click();
+    await page
+      .getByRole('tab', { name: `${kind} ${kind === 'Toolkit' ? '工具库' : '流程库'}` })
+      .click();
     await page.getByRole('button', { name: `安装 ${kind}`, exact: true }).waitFor();
     const badges = await page.locator('.asset-card > .badge:first-of-type').allTextContents();
     assert.ok(badges.length > 0);
@@ -117,7 +120,7 @@ console.log(JSON.stringify({ answer: value, stdin, reference: readFileSync('refe
       }),
     modelId,
   );
-  await page.getByRole('button', { name: 'Agent Studio', exact: true }).click();
+  await page.getByRole('button', { name: '助手', exact: true }).click();
   await page.locator('.agent-card').filter({ hasText: '技能接待助手' }).click();
   const studio = page.locator('.agent-studio-dialog');
   await studio.getByRole('button', { name: '添加 Skill', exact: true }).click();
@@ -214,7 +217,7 @@ console.log(JSON.stringify({ answer: value, stdin, reference: readFileSync('refe
   await confirm.getByText(/技能接待助手/).waitFor();
   await confirm.getByRole('button', { name: '删除技能', exact: true }).click();
   await confirm.waitFor({ state: 'detached' });
-  await page.getByRole('button', { name: 'Agent Studio', exact: true }).click();
+  await page.getByRole('button', { name: '助手', exact: true }).click();
   await page.locator('.agent-card').filter({ hasText: '技能接待助手' }).click();
   await studio.getByText('技能已删除或缺失', { exact: true }).waitFor();
   await studio.getByRole('button', { name: '发布', exact: true }).click();

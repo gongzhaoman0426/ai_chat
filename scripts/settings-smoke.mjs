@@ -65,7 +65,7 @@ try {
   await page.getByRole('heading', { name: '先把你的店铺连进来' }).waitFor({ timeout: 90000 });
   await checkOnboarding({ app, page, modelBaseUrl: `http://127.0.0.1:${mock.address().port}/v1` });
   await page.evaluate(() => window.judesk.call('app.settings', { developerModeEnabled: true }));
-  await page.getByRole('button', { name: 'Agent Studio', exact: true }).click();
+  await page.getByRole('button', { name: '助手', exact: true }).click();
   await page.locator('.agent-card').filter({ hasText: '默认自动回复' }).click();
   const studio = page.locator('.agent-studio-dialog');
   const mounted = studio.locator('.studio-mounted').filter({ hasText: '店铺客服工具' });
@@ -84,7 +84,7 @@ try {
   await page.screenshot({ path: '.artifacts/toolkit-latest-picker.png', animations: 'disabled' });
   await picker.getByRole('button', { name: '取消', exact: true }).click();
   await studio.getByRole('button', { name: '关闭 Agent 编辑器', exact: true }).click();
-  await page.getByRole('button', { name: 'Toolkit', exact: true }).click();
+  await page.getByRole('button', { name: '扩展', exact: true }).click();
   assert.equal(await page.locator('.asset-card').filter({ hasText: '店铺客服工具' }).count(), 1);
   await page.screenshot({ path: '.artifacts/toolkit-latest-library.png', animations: 'disabled' });
   console.log(
