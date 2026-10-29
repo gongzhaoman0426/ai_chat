@@ -65,7 +65,14 @@ import {
 } from '../../core/src/types';
 import type { PublishedConfig } from '../../agent-config/src/index';
 import type { ScopedAssetContext } from '../../extension-sdk/src/index';
-import { assert, hash, uid, errorText, isRetiredCloudModel } from '../../core/src/util';
+import {
+  DomainError,
+  assert,
+  hash,
+  uid,
+  errorText,
+  isRetiredCloudModel,
+} from '../../core/src/util';
 import { AssetService } from './assets';
 import {
   knowledgeBootstrapResultSchema,
@@ -1012,6 +1019,31 @@ export class MastraAi implements AiPort {
       abortSignal: AbortSignal.timeout(m.timeoutMs),
     });
     return { ok: true, text: r.text, usage: r.usage };
+  }
+  // Lists model ids from an OpenAI-compatible `GET /models`. An empty key falls back to the
+  // saved key of the profile being edited.
+  async discoverModels(input: { id?: string; baseUrl: string; apiKey?: string }) {
+    let apiKey = input.apiKey ?? '';
+    if (!apiKey && input.id) {
+      const saved = await this.db.modelProfile.findUnique({ where: { id: input.id } });
+      if (saved?.secretRef) apiKey = await this.host.secretGet(saved.secretRef);
+    }
+    const response = await fetch(input.baseUrl.replace(/\/$/, '') + '/models', {
+      redirect: 'error',
+      headers: apiKey ? { Authorization: `Bearer ${apiKey}` } : {},
+      signal: AbortSignal.timeout(15000),
+    }).catch((e): never => {
+      throw new DomainError('INVALID_STATE', `无法连接模型服务：${errorText(e)}`);
+    });
+    assert(response.ok, `模型服务返回 ${response.status}，请检查地址与密钥，或直接填写模型标识`);
+    const body = (await response.json().catch(() => null)) as {
+      data?: Array<{ id?: unknown }>;
+    } | null;
+    const ids = (body?.data ?? [])
+      .map((m) => m?.id)
+      .filter((v): v is string => typeof v === 'string' && !!v);
+    assert(ids.length, '模型服务没有返回可用模型，请直接填写模型标识');
+    return [...new Set(ids)].sort((a, b) => a.localeCompare(b));
   }
   async generateKnowledgeDrafts(
     model: Record<string, unknown>,

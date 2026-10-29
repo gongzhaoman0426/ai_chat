@@ -394,6 +394,18 @@
   line-height: 1.8;
   color: var(--brand-tint);
 }
+.model-id-row {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+.model-id-row > input {
+  flex: 1;
+  min-width: 0;
+}
+.model-id-row > button {
+  flex-shrink: 0;
+}
 .model-fields-intro {
   color: var(--text-2);
   font-size: var(--fs-12);

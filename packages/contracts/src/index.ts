@@ -577,6 +577,13 @@ export const apiInputs = {
   'models.list': empty,
   'models.save': modelSchema,
   'models.test': z.object({ id: id }).strict(),
+  'models.discover': z
+    .object({
+      id: id.optional(),
+      baseUrl: modelSchema.shape.baseUrl,
+      apiKey: z.string().max(4096).optional(),
+    })
+    .strict(),
   'runs.list': storeInput,
   'runs.history': z
     .object({

@@ -742,6 +742,9 @@ export class Router {
       case 'models.test':
         result = await this.ai.testModel(input.id);
         break;
+      case 'models.discover':
+        result = await this.ai.discoverModels(input as any);
+        break;
       case 'reception.state':
         result = await receptionState(this.engine, input.storeId);
         break;
