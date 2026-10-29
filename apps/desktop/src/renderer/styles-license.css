@@ -1,0 +1,396 @@
+.license-page {
+  padding: 28px;
+  max-width: 1250px;
+  margin: 0 auto;
+  overflow: auto;
+  overscroll-behavior: contain;
+  height: 100%;
+  box-sizing: border-box;
+  font-size: var(--fs-13);
+}
+.license-welcome {
+  padding-top: 65px;
+}
+.license-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+.license-heading h1 {
+  font-size: var(--fs-22);
+  font-weight: 600;
+  letter-spacing: -0.4px;
+  margin: 10px 0 6px;
+}
+.license-heading p,
+.license-card p {
+  color: var(--text-2);
+  line-height: 1.7;
+  margin: 6px 0;
+  font-size: var(--fs-12);
+}
+.license-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: none;
+  padding: 22px 24px;
+  margin-bottom: 16px;
+}
+.license-card h2 {
+  font-size: var(--fs-16);
+  margin: 8px 0;
+}
+.license-profile {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.license-user,
+.license-actions,
+.license-profile-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.license-profile-actions {
+  margin-left: auto;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.license-user h2 {
+  margin: 0;
+  font-size: var(--fs-16);
+}
+.license-user > span {
+  font-size: var(--fs-12);
+  color: var(--text-2);
+}
+.license-grid-caption {
+  color: var(--text-2);
+  font-size: var(--fs-12);
+  margin: 0 0 10px;
+}
+.license-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+.license-plan {
+  padding: 16px 18px;
+}
+.license-plan-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.license-plan-head h2 {
+  margin: 0;
+  font-size: var(--fs-16);
+}
+.license-plan .license-price {
+  margin: 4px 0;
+}
+.license-invite {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  margin-top: 12px;
+}
+.license-invite summary {
+  padding: 11px 20px;
+  cursor: pointer;
+  font-size: var(--fs-13);
+  color: var(--text-2);
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.license-invite summary::after {
+  content: '▾';
+  color: var(--text-3);
+  font-size: var(--fs-11);
+}
+.license-invite[open] summary::after {
+  content: '▴';
+}
+.license-invite-body {
+  padding: 0 20px 16px;
+}
+.license-invite-body .license-actions {
+  flex-wrap: wrap;
+}
+.license-invite-body input {
+  min-width: 220px;
+}
+.license-subsection {
+  font-size: var(--fs-13);
+  color: var(--text-2);
+  margin: 18px 0 4px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+.license-price {
+  display: block;
+  font-size: var(--fs-22);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.3px;
+  margin: 8px 0;
+}
+.license-price small {
+  font-size: var(--fs-12);
+  font-weight: 400;
+  color: var(--text-2);
+}
+.license-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border-bottom: 1px solid var(--border);
+  padding: 13px 0;
+}
+.license-row > div:first-child {
+  flex: 1;
+}
+.license-row:last-child {
+  border: 0;
+}
+.license-row small,
+.license-profile small {
+  display: block;
+  color: var(--text-2);
+  font-size: var(--fs-11);
+  margin-top: 7px;
+}
+.license-login {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 36px;
+  padding: 24px;
+}
+.license-login > div {
+  background: var(--surface-subtle);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 24px;
+}
+.license-login ul {
+  font-size: var(--fs-12);
+  line-height: 2.2;
+  padding-left: 18px;
+  color: var(--text-2);
+}
+.license-login form input,
+.license-modal select {
+  width: 100%;
+}
+.license-tabs {
+  display: inline-flex;
+  gap: 2px;
+  background: var(--surface-subtle);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 3px;
+  margin-bottom: 16px;
+}
+.license-tabs button {
+  padding: 7px 16px;
+  border-radius: 5px;
+  color: var(--text-2);
+  font-weight: 500;
+  transition:
+    color 140ms,
+    background 140ms;
+}
+.license-tabs button.active {
+  color: var(--brand);
+  background: var(--surface);
+  box-shadow: 0 1px 3px rgb(38 67 112 / 6%);
+}
+.license-notice {
+  background: var(--warning-soft);
+  color: var(--warning-strong);
+  border: 1px solid var(--warning-soft);
+  padding: 10px 14px;
+  margin: 12px 0;
+  border-radius: var(--radius-sm);
+  white-space: pre-wrap;
+  font-size: var(--fs-12);
+}
+.license-modal {
+  padding: 20px;
+}
+.license-modal > p {
+  margin-bottom: 18px;
+}
+.license-payment {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+.license-payment h2 {
+  font-size: 30px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.license-payment small {
+  color: var(--text-2);
+  font-size: var(--fs-11);
+}
+.license-email-code {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.license-email-code input {
+  flex: 1;
+  min-width: 0;
+  width: 0 !important;
+}
+.license-email-code button {
+  flex-shrink: 0;
+}
+.license-auth-methods {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.license-auth-hint {
+  color: var(--text-2);
+  font-size: var(--fs-11);
+}
+@media (max-width: 1200px) {
+  .license-page {
+    padding: 22px;
+  }
+  .license-grid {
+    gap: 10px;
+  }
+  .license-card {
+    padding: 18px;
+  }
+  .license-login {
+    gap: 25px;
+  }
+  .license-profile {
+    align-items: start;
+    gap: 20px;
+  }
+  .license-profile-actions {
+    margin-left: auto;
+  }
+  .license-user {
+    flex-wrap: wrap;
+  }
+}
+
+.license-heading > div {
+  min-width: 0;
+}
+.license-heading,
+.license-actions {
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.license-user {
+  min-width: 0;
+}
+.license-user > svg {
+  flex-shrink: 0;
+  box-sizing: content-box;
+  padding: 10px;
+  color: var(--brand);
+  background: var(--brand-soft);
+  border-radius: var(--radius-md);
+}
+.license-user > div {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.license-login > div > svg {
+  color: var(--brand);
+  margin-bottom: 12px;
+}
+.license-login form {
+  min-width: 0;
+  padding: 4px 0;
+}
+.license-login form > .btn {
+  width: 100%;
+}
+.license-tabs button:hover:not(.active) {
+  color: var(--text);
+  background: var(--brand-soft);
+}
+.license-tabs button:focus-visible,
+.license-invite summary:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 3px;
+}
+/* Workspace tabs share the quiet underline navigation used in settings. */
+.cloud-page > .license-tabs {
+  display: flex;
+  width: 100%;
+  gap: 24px;
+  padding: 0;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  background: transparent;
+  margin-bottom: 20px;
+  overflow-x: auto;
+}
+.cloud-page > .license-tabs button {
+  flex-shrink: 0;
+  padding: 10px 2px 13px;
+  border-radius: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  box-shadow: none;
+  font-size: var(--fs-13);
+}
+.cloud-page > .license-tabs button.active {
+  color: var(--brand);
+  border-bottom-color: var(--brand);
+}
+.cloud-page > .license-tabs button:hover:not(.active) {
+  color: var(--brand);
+  background: transparent;
+}
+.license-auth-methods {
+  flex-wrap: wrap;
+}
+.license-payment img {
+  max-width: 100%;
+}
+@media (max-width: 680px) {
+  .license-page {
+    padding: 20px;
+  }
+  .license-login,
+  .license-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .license-login {
+    gap: 24px;
+  }
+  .license-login > div {
+    padding: 20px;
+  }
+  .license-row {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .license-profile-actions {
+    margin-left: 0;
+    justify-content: flex-start;
+  }
+}

@@ -1,0 +1,692 @@
+.settings-heading {
+  margin-bottom: 18px;
+}
+.settings-heading h1 {
+  font-size: var(--fs-22);
+  letter-spacing: -0.4px;
+}
+.settings-heading p {
+  color: var(--text-2);
+}
+.settings-body {
+  --settings-ink: var(--text);
+  --settings-muted: var(--text-2);
+}
+.settings-body .settings-grid {
+  gap: 16px;
+}
+/* Compact navigation keeps attention on the active configuration. */
+.settings-body .settings-tabs {
+  display: flex;
+  flex-shrink: 0;
+  gap: 24px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 20px;
+  overflow-x: auto;
+}
+.settings-body .settings-tabs button {
+  flex-shrink: 0;
+  padding: 10px 2px 13px;
+  color: var(--text-2);
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  transition:
+    color 140ms,
+    border-color 140ms;
+}
+.settings-body .settings-tabs button:hover {
+  color: var(--brand);
+}
+.settings-body .settings-tabs button[aria-selected='true'] {
+  color: var(--brand);
+  border-bottom-color: var(--brand);
+  background: transparent;
+  box-shadow: none;
+}
+.settings-body .settings-tabs strong {
+  margin: 0;
+  font-size: var(--fs-13);
+  font-weight: 550;
+}
+.settings-body .settings-tabs small {
+  display: none;
+}
+.settings-body .settings-section {
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  background: var(--surface);
+  border-color: var(--border);
+  box-shadow: none;
+}
+.update-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 20px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-subtle);
+}
+.update-panel strong {
+  display: block;
+  color: var(--text);
+  font-size: var(--fs-13);
+}
+.update-panel p,
+.update-panel small {
+  display: block;
+  margin-top: 4px;
+  color: var(--text-2);
+  line-height: 1.6;
+}
+.update-panel small {
+  max-width: 620px;
+  white-space: pre-wrap;
+}
+.update-panel .actions {
+  flex-shrink: 0;
+}
+@media (max-width: 700px) {
+  .update-panel {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .update-panel .actions {
+    width: 100%;
+  }
+}
+.settings-body .settings-title h3 {
+  font-size: var(--fs-16);
+  font-weight: 600;
+  color: var(--settings-ink);
+}
+.settings-body .settings-title p {
+  font-size: var(--fs-12);
+  line-height: 1.7;
+  color: var(--settings-muted);
+}
+.settings-body .hint,
+.settings-body .field small,
+.assistant-model-settings .hint,
+.assistant-model-settings .field small {
+  color: var(--text-2);
+  font-size: var(--fs-12);
+  line-height: 1.7;
+}
+.settings-body .field > span,
+.assistant-model-settings .field > span {
+  color: var(--text);
+  font-size: var(--fs-13);
+}
+.settings-body input,
+.settings-body select,
+.assistant-model-settings input,
+.assistant-model-settings select {
+  color: var(--text);
+  font-size: var(--fs-13);
+}
+.settings-body .field,
+.assistant-model-settings .field {
+  min-width: 0;
+}
+.settings-body fieldset,
+.assistant-model-settings fieldset,
+.modal fieldset {
+  min-width: 0;
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+.settings-store-scope {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 18px;
+  background: var(--surface);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+}
+.settings-store-scope .field {
+  width: auto;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  flex-shrink: 0;
+}
+.settings-store-scope p {
+  color: var(--text-2);
+  font-size: var(--fs-12);
+  line-height: 1.7;
+  flex: 1;
+}
+.settings-progress {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  gap: 10px;
+}
+.settings-progress li {
+  min-width: 0;
+}
+.settings-progress button {
+  width: 100%;
+  min-height: 66px;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  transition:
+    background 140ms,
+    border-color 140ms;
+}
+.settings-progress button[aria-pressed='true'] {
+  border-color: var(--brand-soft-strong);
+  background: var(--brand-soft);
+  box-shadow: none;
+}
+.settings-progress button > span {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-2);
+}
+.settings-progress button > span.done {
+  background: var(--success-soft);
+  border-color: var(--success-soft);
+  color: var(--success-strong);
+}
+.settings-progress button[aria-pressed='true'] > span {
+  color: white;
+  background: var(--brand-hover);
+  border-color: var(--brand-hover);
+}
+.settings-progress button > div {
+  min-width: 0;
+}
+.settings-progress strong {
+  display: block;
+  color: var(--text);
+  font-size: var(--fs-14);
+}
+.settings-progress small {
+  display: block;
+  color: var(--text-2);
+  font-size: var(--fs-11);
+  margin-top: 5px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.settings-step-title {
+  margin-bottom: 18px;
+}
+.settings-step-title span {
+  color: var(--brand-tint);
+  font-size: var(--fs-11);
+}
+.settings-step-title h2 {
+  font-size: var(--fs-18);
+  font-weight: 600;
+  color: var(--text);
+  margin: 6px 0;
+}
+.settings-step-title p {
+  font-size: var(--fs-12);
+  color: var(--text-2);
+  line-height: 1.8;
+}
+.settings-step-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 24px;
+  border-top: 1px solid var(--border);
+  padding-top: 20px;
+}
+.settings-step-footer > span {
+  color: var(--text-2);
+  font-size: var(--fs-12);
+}
+.reception-account {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  padding: 16px;
+}
+.reception-account + .reception-account {
+  margin-top: 12px;
+}
+.reception-account-info {
+  flex: 1;
+  min-width: 210px;
+}
+.reception-account-info strong {
+  font-size: var(--fs-14);
+  color: var(--text);
+}
+.reception-account-info p {
+  font-size: var(--fs-12);
+  line-height: 1.7;
+  margin: 5px 0;
+  color: var(--text-2);
+  overflow-wrap: anywhere;
+}
+.reception-account-info small {
+  font-size: var(--fs-11);
+  color: var(--text-2);
+}
+.account-more {
+  position: relative;
+  font-size: var(--fs-12);
+  color: var(--text-2);
+}
+.account-more summary {
+  padding: 8px;
+  cursor: pointer;
+}
+.account-more > div {
+  position: absolute;
+  right: 0;
+  top: 32px;
+  z-index: 5;
+  min-width: 145px;
+  padding: 7px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  display: flex;
+  flex-direction: column;
+}
+.assistant-current {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+.assistant-current > div {
+  flex: 1;
+  min-width: 200px;
+}
+.assistant-current-icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  background: var(--brand-soft);
+  border-radius: var(--radius-md);
+  color: var(--brand-tint);
+}
+.assistant-current small {
+  display: block;
+  color: var(--text-2);
+  font-size: var(--fs-11);
+  margin-bottom: 5px;
+}
+.assistant-current h2 {
+  font-size: 18px;
+  margin: 0 0 5px;
+  color: var(--text);
+}
+.assistant-current p {
+  color: var(--text-2);
+  font-size: var(--fs-12);
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+.assistant-model-settings .setup-note {
+  color: var(--brand-tint);
+  margin: 12px 0 18px;
+}
+.assistant-model-settings .actions {
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.assistant-model-settings .setup-model-mode {
+  margin: 20px 0;
+}
+.assistant-model-settings form > fieldset > .field {
+  margin: 20px 0;
+}
+.assistant-apply-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px 16px;
+  background: var(--surface-subtle);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  margin: 18px 0;
+  color: var(--brand-tint);
+}
+.assistant-apply-note svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.assistant-apply-note p {
+  margin: 0;
+  font-size: var(--fs-12);
+  line-height: 1.8;
+  color: var(--brand-tint);
+}
+.model-fields-intro {
+  color: var(--text-2);
+  font-size: var(--fs-12);
+  line-height: 1.7;
+  margin: 0;
+}
+.model-save-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 0;
+  color: var(--success-strong);
+  font-size: var(--fs-12);
+  line-height: 1.7;
+}
+.settings-notice {
+  background: var(--warning-soft);
+  color: var(--warning-strong);
+  padding: 12px 15px;
+  border-radius: 8px;
+  font-size: var(--fs-12);
+  line-height: 1.8;
+  margin: 12px 0 18px;
+}
+.reception-review {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 0 18px;
+}
+.reception-review > div {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  min-height: 57px;
+  padding: 12px 0;
+}
+.reception-review > div + div {
+  border-top: 1px solid var(--border);
+}
+.reception-review span {
+  flex-shrink: 0;
+  width: 70px;
+  font-size: var(--fs-12);
+  color: var(--text-2);
+}
+.reception-review strong {
+  flex: 1;
+  font-size: var(--fs-13);
+  font-weight: 500;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+.settings-verification {
+  background: var(--warning-soft);
+  padding: 16px;
+  margin-top: 16px;
+  border-radius: var(--radius-md);
+}
+.settings-verification p {
+  font-size: var(--fs-12);
+  line-height: 1.8;
+  color: var(--warning-strong);
+  margin-bottom: 12px;
+}
+.settings-verification .actions {
+  flex-wrap: wrap;
+}
+.reception-enable {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  background: var(--brand-soft);
+  padding: 20px;
+  border: 1px solid var(--brand-soft-strong);
+  border-radius: var(--radius-md);
+  margin-top: 20px;
+}
+.reception-enable > div {
+  flex: 1;
+}
+.reception-enable strong {
+  font-size: var(--fs-16);
+  color: var(--text);
+}
+.reception-enable p {
+  font-size: var(--fs-12);
+  line-height: 1.8;
+  color: var(--text-2);
+  margin-top: 6px;
+}
+.reception-enable .toggle-row {
+  border: none;
+  padding: 0;
+}
+.reception-enable .toggle-row > span {
+  display: none;
+}
+.reception-preferences .field {
+  margin: 15px 0;
+}
+.reception-preferences form > fieldset > .field {
+  max-width: 550px;
+}
+.settings-config-detail {
+  color: var(--brand-tint);
+}
+.settings-config-detail > summary {
+  cursor: pointer;
+  font-size: var(--fs-12);
+  padding: 6px 2px 12px;
+}
+.settings-config-detail .working-configuration {
+  margin-top: 0;
+}
+.settings-empty {
+  text-align: center;
+  padding: 48px 25px !important;
+}
+.settings-empty-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  border-radius: var(--radius-lg);
+  background: var(--brand-soft);
+  color: var(--brand-tint);
+  margin-bottom: 18px;
+}
+.settings-empty h2 {
+  font-size: var(--fs-18);
+  color: var(--text);
+}
+.settings-empty p {
+  max-width: 490px;
+  margin: 14px auto 26px;
+  color: var(--text-2);
+  font-size: var(--fs-13);
+  line-height: 1.9;
+}
+.settings-empty .btn {
+  margin: 0 5px;
+}
+.settings-model-next {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 20px;
+  padding: 16px 18px;
+  background: var(--surface-subtle);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+.settings-model-next > div {
+  flex: 1;
+  min-width: 240px;
+}
+.settings-model-next strong {
+  font-size: var(--fs-13);
+  color: var(--text);
+}
+.settings-model-next p {
+  font-size: var(--fs-12);
+  color: var(--text-2);
+  margin-top: 7px;
+  line-height: 1.8;
+}
+.settings-body .model-list strong {
+  color: var(--text);
+  font-size: var(--fs-14);
+}
+.settings-body .model-list small {
+  color: var(--text-2);
+  font-size: var(--fs-12);
+  overflow-wrap: anywhere;
+}
+
+.settings-store-scope .field > span {
+  white-space: nowrap;
+}
+.settings-store-scope select {
+  width: 225px;
+}
+.settings-progress button:hover:not([aria-pressed='true']):not(:disabled) {
+  background: var(--surface-subtle);
+  border-color: var(--border-strong);
+}
+.settings-body .settings-title {
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.settings-body .settings-title > svg {
+  flex-shrink: 0;
+  color: var(--brand);
+}
+.settings-body .settings-title > div {
+  min-width: 0;
+}
+.settings-body .model-list {
+  margin-bottom: 20px;
+}
+.settings-body .model-list > div {
+  padding: 16px 0;
+}
+.settings-body .model-list > div > div:nth-child(2) {
+  min-width: 0;
+}
+.settings-body .model-list small {
+  padding: 5px 0 0;
+}
+.settings-body .model-icon {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border: 0;
+  border-radius: var(--radius-md);
+  color: var(--brand);
+  font-weight: 600;
+}
+.settings-body .settings-advanced {
+  border-top-color: var(--border);
+}
+.settings-body .settings-advanced summary {
+  color: var(--text);
+  font-weight: 500;
+}
+.settings-body .toggle-row {
+  padding: 16px 0;
+}
+.settings-body .settings-tabs button:focus-visible,
+.settings-progress button:focus-visible,
+.account-more summary:focus-visible,
+.settings-config-detail > summary:focus-visible,
+.settings-body .settings-advanced summary:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 3px;
+}
+.account-more summary {
+  border-radius: var(--radius-sm);
+}
+.account-more summary:hover {
+  color: var(--brand);
+  background: var(--brand-soft);
+}
+@media (max-width: 1200px) {
+  .settings-body .settings-section {
+    padding: 20px;
+  }
+  .settings-body .settings-title {
+    flex-wrap: wrap;
+  }
+  .settings-store-scope {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .settings-store-scope select {
+    width: 190px;
+  }
+  .settings-progress button {
+    padding: 12px;
+    gap: 10px;
+  }
+}
+@media (max-width: 680px) {
+  .settings-body .settings-tabs {
+    gap: 20px;
+  }
+  .settings-progress {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .settings-progress button {
+    min-height: 58px;
+  }
+  .settings-store-scope .field {
+    width: 100%;
+  }
+  .settings-store-scope select {
+    flex: 1;
+    min-width: 0;
+    width: 0;
+  }
+  .settings-store-scope p {
+    flex-basis: 100%;
+  }
+  .settings-body .settings-title > div {
+    flex-basis: calc(100% - 36px);
+  }
+  .reception-enable {
+    align-items: flex-start;
+    gap: 14px;
+  }
+  .reception-review > div {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+}

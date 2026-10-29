@@ -1,0 +1,9 @@
+packages:
+  - packages/*
+allowBuilds:
+  '@prisma/engines': true
+  electron: true
+  electron-winstaller: false
+  esbuild: true
+  prisma: true
+  libsql: true

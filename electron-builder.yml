@@ -1,0 +1,56 @@
+appId: cn.judesk.desktop
+productName: 句达
+# 可执行文件名保持 ASCII（跨平台兼容、smoke 脚本与命令行启动），产品显示名仍为「句达」
+executableName: judesk
+artifactName: 'judesk-${version}-${os}-${arch}.${ext}'
+forceCodeSigning: false
+publish:
+  provider: generic
+  url: 'https://updates.quantaflow.one/stable/${platform}/${arch}'
+  publishAutoUpdate: true
+directories:
+  output: dist
+beforePack: ./scripts/before-pack.cjs
+files:
+  - out/**/*
+  - package.json
+  - from: .packaging/prisma-client
+    to: node_modules/.prisma/client
+  - from: .packaging/provider-v6
+    to: node_modules/@ai-sdk/provider-v6
+  - from: .packaging/provider-v7
+    to: node_modules/@ai-sdk/provider-v7
+asarUnpack:
+  - '**/*.node'
+  - '**/node_modules/@libsql/**/*'
+  - '**/node_modules/@prisma/**/*'
+  - '**/node_modules/.prisma/**/*'
+  - '**/node_modules/prisma/**/*'
+extraResources:
+  - from: packages/database/prisma
+    to: prisma
+  - from: resources
+    to: resources
+    filter:
+      - '**/*'
+      - '!qianniu-native/**'
+npmRebuild: false
+mac:
+  category: public.app-category.business
+  icon: resources/icon.icns
+  target: [dmg, zip]
+  hardenedRuntime: true
+  gatekeeperAssess: false
+  notarize: false
+win:
+  icon: resources/icon.png
+  extraResources:
+    - from: resources/qianniu-native
+      to: resources/qianniu-native
+  target:
+    - target: nsis
+      arch: [x64]
+nsis:
+  oneClick: true
+  perMachine: false
+  differentialPackage: true

@@ -1,0 +1,125 @@
+.knowledge-bootstrap {
+  margin: 18px 0;
+  padding: 18px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  min-width: 0;
+}
+.knowledge-bootstrap-heading,
+.knowledge-bootstrap-selection,
+.knowledge-bootstrap-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.knowledge-bootstrap-heading > div {
+  flex: 1 1 260px;
+}
+.knowledge-bootstrap-heading h3 {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  font-size: var(--fs-14);
+}
+.knowledge-bootstrap-heading p,
+.knowledge-bootstrap-note,
+.knowledge-bootstrap-draft-content p {
+  margin: 7px 0;
+  line-height: 1.65;
+  color: var(--text-2);
+  overflow-wrap: anywhere;
+}
+.knowledge-bootstrap-note,
+.knowledge-bootstrap small,
+.knowledge-bootstrap-selection > span {
+  font-size: var(--fs-12);
+  color: var(--text-2);
+}
+.knowledge-bootstrap-progress {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin-top: 14px;
+}
+.knowledge-bootstrap-warnings {
+  margin-top: 12px;
+  padding: 10px 12px;
+  background: var(--warning-soft);
+  color: var(--warning-strong);
+  border-radius: 7px;
+  font-size: var(--fs-12);
+}
+.knowledge-bootstrap-warnings summary {
+  cursor: pointer;
+}
+.knowledge-bootstrap-warnings ul {
+  margin: 8px 0 0;
+  padding-left: 20px;
+  line-height: 1.6;
+  max-height: 180px;
+  overflow-y: auto;
+}
+.knowledge-bootstrap-selection {
+  margin-top: 16px;
+  padding: 12px 0;
+  border-top: 1px solid var(--border);
+}
+.knowledge-bootstrap-selection label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.knowledge-bootstrap input[type='checkbox'] {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+  accent-color: var(--brand);
+  margin: 0;
+}
+.knowledge-bootstrap-drafts {
+  max-height: 430px;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.knowledge-bootstrap-draft {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px;
+}
+.knowledge-bootstrap-draft + .knowledge-bootstrap-draft {
+  border-top: 1px solid var(--border);
+}
+.knowledge-bootstrap-draft-check {
+  padding-top: 3px;
+}
+.knowledge-bootstrap-draft-content {
+  flex: 1;
+  min-width: 0;
+}
+.knowledge-bootstrap-draft-content > strong {
+  display: block;
+  overflow-wrap: anywhere;
+}
+.knowledge-bootstrap-draft-content > small {
+  display: block;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.knowledge-bootstrap-draft-content img {
+  max-width: 180px;
+  max-height: 120px;
+  object-fit: contain;
+}
+.knowledge-bootstrap-draft > .btn {
+  flex-shrink: 0;
+}
+.knowledge-bootstrap-footer {
+  margin-top: 14px;
+}

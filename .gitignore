@@ -1,0 +1,17 @@
+node_modules/
+out/
+dist/
+coverage/
+.artifacts/
+.env
+*.log
+*.db
+*.db-shm
+*.db-wal
+.DS_Store
+packages/database/generated/
+extensions-dist/
+
+.packaging/
+
+resources/license.json

@@ -1,0 +1,587 @@
+generator client {
+  provider   = "prisma-client-js"
+  engineType = "client"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model AppSetting {
+  key   String @id
+  value Json
+}
+
+model Store {
+  id                  String          @id @default(uuid())
+  platform            String          @default("pinduoduo")
+  externalId          String
+  name                String
+  replyConfigEpoch    Int             @default(1)
+  learningConfigEpoch Int             @default(1)
+  createdAt           DateTime        @default(now())
+  accounts            Account[]
+  conversations       Conversation[]
+  replyPolicy         ReplyPolicy?
+  learningPolicy      LearningPolicy?
+
+  @@unique([platform, externalId])
+}
+
+model ReplyPolicy {
+  storeId              String  @id
+  store                Store   @relation(fields: [storeId], references: [id])
+  autoReplyEnabled     Boolean @default(false)
+  directMatchThreshold Float   @default(0.6)
+  version              Int     @default(1)
+}
+
+model LearningPolicy {
+  storeId          String  @id
+  store            Store   @relation(fields: [storeId], references: [id])
+  autoLearnEnabled Boolean @default(false)
+  builtinModelRef  String?
+  enableEpoch      Int     @default(1)
+  version          Int     @default(1)
+}
+
+model Account {
+  id               String    @id @default(uuid())
+  storeId          String
+  store            Store     @relation(fields: [storeId], references: [id])
+  externalId       String
+  name             String
+  sessionPartition String    @unique
+  status           String    @default("offline")
+  capabilities     Json
+  lastSeenAt       DateTime?
+  verifiedAt       DateTime?
+
+  @@unique([storeId, externalId])
+}
+
+model Conversation {
+  id                    String         @id @default(uuid())
+  storeId               String
+  store                 Store          @relation(fields: [storeId], references: [id])
+  platformContext       Json           @default("{}")
+  externalKey           String
+  buyerId               String
+  buyerName             String
+  accountId             String
+  routeVersion          Int            @default(1)
+  revision              Int            @default(1)
+  /// Explicit human reception, independent of which conversation is viewed.
+  openedByHuman         Boolean        @default(false)
+  awaitingHuman         Boolean        @default(false)
+  humanSentAfterHandoff Boolean        @default(false)
+  handoffReason         String?
+  unread                Int            @default(0)
+  preview               String         @default("")
+  updatedAt             DateTime       @default(now())
+  messages              Message[]
+  groups                MessageGroup[]
+
+  @@unique([storeId, externalKey])
+  @@index([storeId, updatedAt])
+}
+
+model Message {
+  id                String       @id @default(uuid())
+  conversationId    String
+  conversation      Conversation @relation(fields: [conversationId], references: [id])
+  storeId           String
+  externalId        String
+  direction         String
+  origin            String
+  kind              String       @default("text")
+  text              String       @default("")
+  attachmentId      String?
+  timestamp         DateTime
+  receivedAt        DateTime     @default(now())
+  withdrawn         Boolean      @default(false)
+  associationStatus String       @default("none")
+  raw               Json
+  answers           TurnAnswer[]
+
+  @@unique([storeId, externalId])
+  @@index([conversationId, timestamp, id])
+}
+
+model MessageReceipt {
+  id         String   @id @default(uuid())
+  messageId  String
+  accountId  String
+  eventKey   String
+  receivedAt DateTime @default(now())
+
+  @@unique([accountId, eventKey])
+}
+
+model MessageGroup {
+  id             String         @id @default(uuid())
+  conversationId String
+  conversation   Conversation   @relation(fields: [conversationId], references: [id])
+  messageIds     Json
+  revision       Int            @default(1)
+  autoEligible   Boolean
+  state          String         @default("waiting_answer")
+  createdAt      DateTime       @default(now())
+  sealedAt       DateTime
+  turns          AnsweredTurn[]
+
+  @@index([conversationId, state])
+}
+
+model AnsweredTurn {
+  id                String               @id @default(uuid())
+  storeId           String
+  conversationId    String
+  questionGroupId   String               @unique
+  questionGroup     MessageGroup         @relation(fields: [questionGroupId], references: [id])
+  sourceRevision    Int                  @default(1)
+  associationMode   String               @default("explicit")
+  contextMessageIds Json                 @default("[]")
+  status            String               @default("answered")
+  answeredAt        DateTime             @default(now())
+  answers           TurnAnswer[]
+  evaluations       LearningEvaluation[]
+}
+
+model TurnAnswer {
+  id         String       @id @default(uuid())
+  turnId     String
+  turn       AnsweredTurn @relation(fields: [turnId], references: [id])
+  messageId  String
+  message    Message      @relation(fields: [messageId], references: [id])
+  origin     String
+  outboundId String?
+
+  @@unique([turnId, messageId])
+}
+
+model BusinessEvent {
+  sequence             Int      @id @default(autoincrement())
+  eventKey             String   @unique
+  storeId              String
+  type                 String
+  aggregateId          String
+  sourceRevision       Int
+  learningCaptureEpoch Int?
+  createdAt            DateTime @default(now())
+}
+
+model LearningSubscription {
+  storeId     String @id
+  eventCursor Int    @default(0)
+}
+
+model Job {
+  id                  String    @id @default(uuid())
+  kind                String
+  storeId             String?
+  conversationId      String?
+  dedupKey            String    @unique
+  payload             Json
+  status              String    @default("pending")
+  priority            Int       @default(50)
+  runAfter            DateTime  @default(now())
+  leaseToken          String?
+  leaseUntil          DateTime?
+  attempts            Int       @default(0)
+  error               String?
+  runConfigSnapshotId String?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  @@index([status, runAfter, priority])
+}
+
+model OutboundMessage {
+  id                   String   @id @default(uuid())
+  intentKey            String   @unique
+  conversationId       String
+  storeId              String
+  accountId            String
+  routeVersion         Int
+  conversationRevision Int
+  replyConfigEpoch     Int
+  questionGroupId      String?
+  origin               String
+  body                 Json
+  aiRunId              String?
+  status               String   @default("prepared")
+  externalId           String?
+  dispatchToken        String?
+  error                String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@index([status, updatedAt])
+}
+
+model KnowledgeEntry {
+  id               String              @id @default(uuid())
+  storeId          String?
+  status           String              @default("enabled")
+  activeRevisionId String?
+  revisions        KnowledgeRevision[]
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+
+  @@index([storeId, status])
+}
+
+model KnowledgeRevision {
+  id             String         @id @default(uuid())
+  entryId        String
+  entry          KnowledgeEntry @relation(fields: [entryId], references: [id])
+  version        Int
+  intent         String
+  answerKind     String
+  answer         String         @default("")
+  answerBefore   String         @default("")
+  answerAfter    String         @default("")
+  attachmentId   String?
+  scope          Json
+  validUntil     DateTime?
+  approvalSource String         @default("human")
+  approvalId     String?
+  evaluationId   String?
+  sourceKind     String
+  createdAt      DateTime       @default(now())
+
+  @@unique([entryId, version])
+}
+
+model KnowledgeSource {
+  id             String  @id @default(uuid())
+  revisionId     String
+  turnId         String?
+  messageId      String?
+  sourceRevision Int?
+  rootSourceId   String
+  sourceKind     String
+
+  @@index([revisionId])
+}
+
+model KnowledgeIndexRecord {
+  id          String  @id @default(uuid())
+  revisionId  String
+  profileHash String
+  vectorId    String
+  status      String  @default("pending")
+  error       String?
+
+  @@unique([revisionId, profileHash])
+}
+
+model LearningEvaluation {
+  id               String               @id @default(uuid())
+  storeId          String
+  turnId           String
+  turn             AnsweredTurn         @relation(fields: [turnId], references: [id])
+  sourceRevision   Int
+  evaluatorVersion String
+  aiRunId          String?
+  inputSnapshot    Json
+  result           Json
+  status           String
+  createdAt        DateTime             @default(now())
+  candidates       KnowledgeCandidate[]
+
+  @@unique([storeId, turnId, sourceRevision, evaluatorVersion])
+}
+
+model KnowledgeCandidate {
+  id                       String             @id @default(uuid())
+  storeId                  String
+  evaluationId             String
+  evaluation               LearningEvaluation @relation(fields: [evaluationId], references: [id])
+  actionIndex              Int
+  candidateVersion         Int                @default(1)
+  contentHash              String
+  content                  Json
+  action                   String
+  targetEntryId            String?
+  expectedActiveRevisionId String?
+  sourceRevision           Int
+  status                   String             @default("pending_review")
+  createdAt                DateTime           @default(now())
+  reviews                  KnowledgeReview[]
+
+  @@unique([evaluationId, actionIndex])
+  @@index([storeId, status])
+}
+
+model KnowledgeReview {
+  id                       String             @id @default(uuid())
+  requestId                String             @unique
+  candidateId              String
+  candidate                KnowledgeCandidate @relation(fields: [candidateId], references: [id])
+  candidateVersion         Int
+  contentHash              String
+  publicationScope         Json?
+  sourceRevision           Int
+  expectedActiveRevisionId String?
+  decision                 String
+  reviewerId               String             @default("local-user")
+  reason                   String?
+  reviewedAt               DateTime           @default(now())
+}
+
+model KnowledgeChange {
+  id               String  @id @default(uuid())
+  candidateId      String
+  approvalId       String  @unique
+  applyKey         String  @unique
+  status           String  @default("pending")
+  resultRevisionId String?
+  error            String?
+}
+
+model ModelProfile {
+  id         String  @id @default(uuid())
+  name       String
+  kind       String  @default("chat")
+  provider   String  @default("openai")
+  model      String
+  baseUrl    String
+  secretRef  String?
+  dimensions Int?
+  maxTokens  Int     @default(2048)
+  timeoutMs  Int     @default(60000)
+  revision   Int     @default(1)
+}
+
+model AgentDefinition {
+  id            String          @id @default(uuid())
+  name          String
+  origin        String          @default("user")
+  draftConfig   Json
+  draftRevision Int             @default(1)
+  status        String          @default("active")
+  createdAt     DateTime        @default(now())
+  revisions     AgentRevision[]
+}
+
+model AgentRevision {
+  id             String          @id @default(uuid())
+  agentId        String
+  agent          AgentDefinition @relation(fields: [agentId], references: [id])
+  revision       Int
+  configSnapshot Json
+  configHash     String
+  publishedAt    DateTime        @default(now())
+
+  @@unique([agentId, revision])
+}
+
+model AgentBinding {
+  scopeKey        String @id
+  agentRevisionId String
+  revision        Int    @default(1)
+}
+
+model AgentRevisionSubAgent {
+  id               String @id @default(uuid())
+  parentRevisionId String
+  alias            String
+  childRevisionId  String
+
+  @@unique([parentRevisionId, alias])
+}
+
+model InstalledExtension {
+  id           String @id
+  assetId      String
+  version      String
+  artifactHash String
+  manifest     Json
+  relativePath String
+  status       String @default("enabled")
+
+  @@unique([assetId, version])
+}
+
+model AssetSetting {
+  id        String   @id @default(uuid())
+  assetId   String
+  scopeKey  String
+  revision  Int
+  values    Json
+  createdAt DateTime @default(now())
+
+  @@unique([assetId, scopeKey, revision])
+}
+
+model RunConfigSnapshot {
+  id          String   @id @default(uuid())
+  storeId     String
+  role        String
+  configEpoch Int
+  config      Json
+  configHash  String
+  createdAt   DateTime @default(now())
+}
+
+model AiRun {
+  steps            AiRunStep[]
+  traceVersion     Int                @default(0)
+  platformEvidence PlatformEvidence[]
+  platformActions  PlatformAction[]
+  id               String             @id @default(uuid())
+  jobId            String?
+  storeId          String
+  conversationId   String?
+  role             String
+  path             String
+  snapshotId       String?
+  status           String             @default("running")
+  input            Json
+  output           Json
+  evidence         Json
+  usage            Json
+  error            String?
+  startedAt        DateTime           @default(now())
+  finishedAt       DateTime?
+
+  @@index([storeId, role, startedAt])
+}
+
+model AiRunStep {
+  id         String    @id @default(uuid())
+  runId      String
+  run        AiRun     @relation(fields: [runId], references: [id], onDelete: Cascade)
+  sequence   Int
+  parentId   String?
+  kind       String
+  name       String
+  toolName   String?
+  status     String    @default("running")
+  input      Json
+  output     Json
+  metadata   Json
+  error      String?
+  startedAt  DateTime  @default(now())
+  finishedAt DateTime?
+
+  @@unique([runId, sequence])
+  @@index([runId, parentId])
+}
+
+model Attachment {
+  id           String   @id @default(uuid())
+  storeId      String?
+  relativePath String
+  mimeType     String
+  size         Int
+  hash         String
+  name         String
+  createdAt    DateTime @default(now())
+}
+
+model AuditEvent {
+  id        String   @id @default(uuid())
+  type      String
+  scope     String
+  actor     String
+  details   Json
+  createdAt DateTime @default(now())
+
+  @@index([scope, createdAt])
+}
+
+model SkillDefinition {
+  id           String   @id @default(uuid())
+  name         String
+  description  String
+  instructions String
+  references   Json     @default("{}")
+  scripts      Json     @default("{}")
+  revision     Int      @default(1)
+  status       String   @default("active")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([status, updatedAt])
+}
+
+// Immutable, bounded platform facts actually supplied to a reply Agent.
+model PlatformEvidence {
+  id             String   @id @default(uuid())
+  runId          String?
+  run            AiRun?   @relation(fields: [runId], references: [id], onDelete: Cascade)
+  sessionId      String?
+  session        WorkbenchSession? @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  storeId        String
+  accountId      String
+  conversationId String
+  buyerId        String
+  operation      String
+  subjectId      String?
+  queryKey       String
+  input          Json
+  result         Json
+  observedAt     DateTime @default(now())
+
+  @@unique([runId, queryKey])
+  @@unique([sessionId, queryKey])
+  @@index([storeId, conversationId, observedAt])
+}
+
+model PlatformAction {
+  id               String   @id @default(uuid())
+  runId            String?
+  run              AiRun?   @relation(fields: [runId], references: [id], onDelete: Cascade)
+  sessionId        String?
+  session          WorkbenchSession? @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  requestId        String? @unique
+  reviewedAt       DateTime?
+  reviewNote       String?
+  storeId          String
+  accountId        String
+  conversationId   String
+  buyerId          String
+  operation        String
+  targetId         String
+  sourceEvidenceId String
+  dedupKey         String   @unique
+  status           String   @default("prepared")
+  input            Json
+  preview          Json
+  result           Json
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([storeId, status, createdAt])
+  @@index([conversationId, createdAt])
+}
+
+// Human platform work is independent of model runs and keeps the exact account route.
+model WorkbenchSession {
+  id String @id @default(uuid())
+  storeId String
+  accountId String
+  conversationId String
+  buyerId String
+  routeVersion Int
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  evidence PlatformEvidence[]
+  actions PlatformAction[]
+
+  @@index([conversationId, expiresAt])
+}
+
+// Local authorization belongs to the resource identity, not exported content or versions.
+model ResourceScope {
+  kind       String
+  resourceId String
+  mode       String @default("all")
+  storeIds   Json   @default("[]")
+  revision   Int    @default(1)
+
+  @@id([kind, resourceId])
+}

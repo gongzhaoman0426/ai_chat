@@ -1,0 +1,352 @@
+.service-welcome {
+  height: 100vh;
+  overflow: auto;
+  background: var(--bg);
+  padding: 64px 32px 36px;
+  box-sizing: border-box;
+}
+.service-welcome-content {
+  max-width: 890px;
+  margin: 0 auto;
+}
+.service-welcome-heading {
+  text-align: center;
+  margin-bottom: 32px;
+}
+.service-welcome-heading .brand-icon {
+  margin: 0 auto 15px;
+  width: 46px;
+  height: 46px;
+}
+.service-free-label {
+  color: var(--brand-hover);
+  font-size: 13px;
+  font-weight: 600;
+}
+.service-welcome-heading h1 {
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.6px;
+  margin: 14px 0 12px;
+  color: var(--text);
+}
+.service-welcome-heading p {
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--text-2);
+}
+.service-choice-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.service-choice {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  padding: 26px;
+  transition:
+    border-color 140ms,
+    background 140ms;
+  min-width: 0;
+}
+.service-choice:hover,
+.service-choice:focus-visible {
+  border-color: var(--brand-soft-strong);
+  background: var(--surface-subtle);
+  box-shadow: none;
+}
+.service-choice-icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  color: var(--brand-hover);
+  background: var(--brand-soft);
+}
+.service-choice h2 {
+  font-size: var(--fs-18);
+  font-weight: 600;
+  margin: 20px 0 10px;
+  color: var(--text);
+}
+.service-choice p {
+  font-size: var(--fs-13);
+  line-height: 1.8;
+  color: var(--text-2);
+  margin: 0 0 18px;
+}
+.service-choice-benefit {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-2);
+  font-size: 13px;
+  margin-top: auto;
+}
+.service-choice strong {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid var(--border);
+  padding-top: 20px;
+  margin-top: 22px;
+  color: var(--brand);
+  font-size: var(--fs-13);
+}
+.service-choice-footer {
+  color: var(--text-2);
+  text-align: center;
+  font-size: 13px;
+  margin: 24px 0 8px;
+}
+.service-skip {
+  display: flex;
+  justify-content: center;
+  padding: 15px 0;
+}
+.service-own-form {
+  max-width: 590px;
+  margin: 0 auto;
+  padding: 28px;
+}
+.service-own-form .modal-actions {
+  margin-top: 25px;
+}
+.service-welcome-cloud {
+  padding: 42px 20px 20px;
+}
+.service-welcome-cloud .license-page {
+  height: auto;
+  padding-top: 8px;
+}
+.service-welcome-back {
+  max-width: 1190px;
+  margin: 0 auto;
+}
+.cloud-page .license-heading {
+  align-items: flex-start;
+  gap: 16px;
+}
+.cloud-page {
+  width: 100%;
+}
+.cloud-page .license-actions {
+  flex-wrap: wrap;
+}
+.cloud-page .license-heading > .license-actions {
+  padding-top: 8px;
+}
+.cloud-page .license-heading p,
+.cloud-page .license-card p {
+  font-size: 13px;
+}
+.cloud-page .license-profile small {
+  margin-top: 5px;
+}
+.cloud-wallet {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+}
+.cloud-wallet > div > span {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  color: var(--text-2);
+}
+.cloud-wallet strong {
+  display: block;
+  font-size: 30px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.5px;
+  margin: 9px 0;
+  font-variant-numeric: tabular-nums;
+}
+.cloud-wallet small {
+  display: block;
+  color: var(--text-2);
+  font-size: 12px;
+  line-height: 1.6;
+}
+.cloud-wallet-action {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.cloud-section-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 12px;
+}
+.cloud-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+.cloud-table {
+  width: 100%;
+  text-align: left;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.cloud-table th {
+  font-size: 12px;
+  color: var(--text-2);
+  font-weight: 500;
+  background: var(--surface-subtle);
+}
+.cloud-table td,
+.cloud-table th {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+.cloud-table td:first-child {
+  white-space: normal;
+  min-width: 155px;
+}
+.cloud-table tr:last-child td {
+  border-bottom: 0;
+}
+.cloud-table td small {
+  display: block;
+  color: var(--text-2);
+  font-size: 12px;
+  margin-top: 6px;
+  overflow-wrap: anywhere;
+}
+.cloud-table td:last-child {
+  text-align: right;
+}
+.cloud-unavailable {
+  text-align: center;
+  padding: 48px 32px;
+}
+.cloud-unavailable > svg {
+  color: var(--brand-hover);
+  margin: 0 auto;
+}
+.cloud-unavailable p {
+  margin-bottom: 20px;
+}
+.cloud-amounts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 16px 0 24px;
+}
+@media (max-width: 850px) {
+  .service-welcome {
+    padding: 44px 20px 24px;
+  }
+  .service-choice {
+    padding: 22px;
+  }
+  .service-choice h2 {
+    font-size: 18px;
+  }
+  .cloud-page .license-heading {
+    flex-direction: column;
+  }
+}
+@media (max-width: 620px) {
+  .service-choice-grid {
+    grid-template-columns: 1fr;
+  }
+  .service-welcome-heading h1 {
+    font-size: 24px;
+  }
+  .cloud-page .license-login {
+    grid-template-columns: 1fr;
+  }
+  .cloud-page .license-profile-actions {
+    width: 100%;
+    margin-left: 0;
+    justify-content: flex-start;
+  }
+  .cloud-wallet {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+.setup-topbar-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.service-choice:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 4px;
+}
+.service-choice-benefit > svg {
+  flex-shrink: 0;
+  color: var(--brand-tint);
+}
+.service-own-form.license-card {
+  padding: 28px;
+}
+.cloud-page .license-heading h1 {
+  font-size: var(--fs-22);
+}
+.cloud-page .license-profile {
+  padding-top: 18px;
+  padding-bottom: 18px;
+}
+.cloud-wallet.license-card {
+  padding: 24px;
+  background: var(--surface);
+}
+.cloud-wallet > div > span > svg {
+  color: var(--brand);
+}
+.cloud-section-heading h2 {
+  margin-top: 0;
+}
+.cloud-table td {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.cloud-table th:last-child {
+  text-align: right;
+}
+.cloud-table tbody tr:hover {
+  background: var(--surface-subtle);
+}
+.cloud-unavailable h2 {
+  margin-top: 18px;
+}
+.cloud-unavailable p {
+  max-width: 560px;
+  margin: 10px auto 24px;
+}
+.cloud-amounts > button {
+  min-width: 76px;
+}
+@media (max-width: 680px) {
+  .cloud-wallet.license-card,
+  .service-own-form.license-card {
+    padding: 20px;
+  }
+  .cloud-section-heading {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+}

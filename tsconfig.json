@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "target": "ES2023",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "jsx": "react-jsx",
+    "types": ["node", "vite/client"],
+    "noEmit": true,
+    "allowImportingTsExtensions": true
+  },
+  "include": [
+    "apps/**/*.ts",
+    "apps/**/*.tsx",
+    "packages/**/*.ts",
+    "tests/**/*.ts",
+    "toolkits/**/*.ts",
+    "workflows/**/*.ts",
+    "*.ts"
+  ],
+  "exclude": ["node_modules", "packages/database/generated"]
+}
