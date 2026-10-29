@@ -10,7 +10,7 @@ import {
 } from '../../../../packages/contracts/src/resource-scope';
 import type { SkillRecord } from '../../../../packages/contracts/src/index';
 import { platformNames, type PlatformId } from '../../../../packages/contracts/src/platform';
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import {
   Bot,
   BookOpenText,
@@ -38,6 +38,7 @@ export function Agents() {
     {
       id: 'global',
       name: '全局默认助手',
+      platform: '',
       description: '没有单独指定助手的店铺都使用这里的选择。',
     },
     ...stores
@@ -45,6 +46,7 @@ export function Agents() {
       .map((s) => ({
         id: `store:${s.id}`,
         name: s.name,
+        platform: platformNames[s.platform as PlatformId],
         description: `${platformNames[s.platform as PlatformId]} · 店铺专用助手`,
       })),
   ];
@@ -56,6 +58,8 @@ export function Agents() {
   const { data: skills = [] } = useData<SkillRecord[]>('skills.list');
   const [selected, setSelected] = useState<AgentRecord | null>(null);
   const [creating, setCreating] = useState(false);
+  const [scopeId, setScopeId] = useState('global');
+  const scope = scopes.find((s) => s.id === scopeId) ?? scopes[0];
   return (
     <>
       <div className="page-heading">
@@ -76,18 +80,31 @@ export function Agents() {
           <section className="section-space" aria-label="店铺分配">
             <div className="eyebrow">店铺分配</div>
             <p className="hint">
-              每家店铺可以使用全局默认助手，也可以单独指定。选「继承全局默认」即改回跟随全局。
+              先选择配置对象：全局默认，或某一家店铺。店铺选「继承全局默认」即改回跟随全局。
             </p>
             <div className="binding-list">
-              {scopes.map((scope) => (
-                <Binding
-                  key={`${scope.id}:${
-                    catalog.bindings?.find((b: any) => b.scopeKey === scope.id)?.revision
-                  }`}
-                  scope={scope}
-                  catalog={catalog}
-                />
-              ))}
+              <Binding
+                key={`${scope.id}:${
+                  catalog.bindings?.find((b: any) => b.scopeKey === scope.id)?.revision
+                }`}
+                scope={scope}
+                catalog={catalog}
+                target={
+                  <Field label="配置对象">
+                    <select
+                      aria-label="配置对象"
+                      value={scope.id}
+                      onChange={(e) => setScopeId(e.target.value)}
+                    >
+                      {scopes.map((s) => (
+                        <option key={s.id} value={s.id}>
+                          {s.id === 'global' ? s.name : `${s.name}（${s.platform}）`}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+                }
+              />
             </div>
           </section>
         )}
@@ -385,7 +402,16 @@ export function Assets({ kind }: { kind: 'toolkit' | 'workflow' }) {
     </>
   );
 }
-export function Binding({ scope, catalog }: { scope: any; catalog: any }) {
+export function Binding({
+  scope,
+  catalog,
+  target,
+}: {
+  scope: any;
+  catalog: any;
+  // Optional picker that replaces the static scope title, e.g. a store selector.
+  target?: ReactNode;
+}) {
   const { data: scopes = [], isSuccess: scopesLoaded } =
     useData<ResourceScopeRecord[]>('resources.scopes');
   const binding = catalog?.bindings?.find((b: any) => b.scopeKey === scope.id);
@@ -399,7 +425,7 @@ export function Binding({ scope, catalog }: { scope: any; catalog: any }) {
         <div className="agent-avatar">
           <Bot size={22} />
         </div>
-        <h3>{scope.name}</h3>
+        {target ?? <h3>{scope.name}</h3>}
         <p>{scope.description}</p>
       </div>
       <div className="binding-fields">
