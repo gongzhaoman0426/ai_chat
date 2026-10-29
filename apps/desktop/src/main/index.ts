@@ -31,7 +31,6 @@ import { QianniuTransport } from './qianniu-transport';
 import { QianniuNativeClient } from './qianniu-native';
 import { discoverQianniuExecutable } from './qianniu-discovery';
 import { PlatformHosts } from './platform-hosts';
-import { UpdateManager } from './updater';
 import { stopServiceProcess } from './service-shutdown';
 import type { PlatformId } from '../../../../packages/contracts/src/platform';
 import { apiInputs, type Method } from '../../../../packages/contracts/src/index';
@@ -48,7 +47,6 @@ let qianniuNative: QianniuNativeClient;
 let tray: Tray;
 let quitting = false;
 let ready = false;
-let updateManager: UpdateManager;
 let stoppingRuntime: Promise<void> | undefined;
 let preparingDatabase: Promise<void> | undefined;
 let failures = 0;
@@ -103,18 +101,6 @@ async function stopRuntime(timeoutMs: number | null, killOnTimeout: boolean) {
   }
 }
 
-async function prepareForInstall() {
-  if (quitting) return;
-  platforms?.setMaintenance(true);
-  quitting = true;
-  try {
-    await stopRuntime(30_000, false);
-  } catch (error) {
-    quitting = false;
-    platforms?.setMaintenance(false);
-    throw error;
-  }
-}
 function showWindow() {
   const current = workbench();
   if (!current) {
@@ -477,32 +463,6 @@ app.whenReady().then(async () => {
       return { ok: false, error: e instanceof Error ? e.message : '请求失败' };
     }
   });
-  ipcMain.handle('judesk:update', async (event, data) => {
-    const current = workbench();
-    if (
-      !current ||
-      event.sender !== current.webContents ||
-      event.senderFrame !== current.webContents.mainFrame
-    )
-      throw new Error('不允许的调用来源');
-    switch (data?.action) {
-      case 'state':
-        return updateManager.getState();
-      case 'check':
-        return updateManager.check();
-      case 'download':
-        return updateManager.download();
-      case 'install':
-        await updateManager.install();
-        return undefined;
-      default:
-        throw new Error('未知更新操作');
-    }
-  });
-  // Create the manager before loading the renderer. The settings page asks for its initial
-  // state during mount, which can happen before the service migration below finishes.
-  updateManager = new UpdateManager(workbench, prepareForInstall);
-  updateManager.initialize();
   await attachWindow();
   const windowIcon = nativeImage.createFromPath(resource('icon.png'));
   const trayIcon = nativeImage.createFromPath(
@@ -632,7 +592,6 @@ app.on('before-quit', (event) => {
   if (quitting) return;
   event.preventDefault();
   quitting = true;
-  updateManager?.dispose();
   void stopRuntime(8000, true)
     .catch((error) => console.error('关闭本地服务失败', error))
     .finally(() => app.quit());

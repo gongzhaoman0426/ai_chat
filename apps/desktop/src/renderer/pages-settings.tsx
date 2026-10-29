@@ -16,90 +16,7 @@ import {
 } from 'lucide-react';
 import { api, client, useData, perform, useUi } from './api';
 import { Button, Field, Modal, Toggle } from './components/ui';
-import type { DesktopUpdateState } from '../../../../packages/contracts/src/index';
 
-function UpdatePanel() {
-  const [update, setUpdate] = useState<DesktopUpdateState | null>(null);
-  const [busy, setBusy] = useState(false);
-  useEffect(() => {
-    let mounted = true;
-    void window.judesk.getUpdateState().then((state) => mounted && setUpdate(state));
-    const off = window.judesk.onUpdate((state) => mounted && setUpdate(state));
-    return () => {
-      mounted = false;
-      off();
-    };
-  }, []);
-  const run = async (action: 'checkForUpdates' | 'downloadUpdate' | 'installUpdate') => {
-    setBusy(true);
-    try {
-      const state = await window.judesk[action]();
-      if (state) setUpdate(state);
-    } catch (error) {
-      setUpdate((current) => ({
-        ...(current ?? { status: 'error', currentVersion: '未知', mode: 'manual' }),
-        status: 'error',
-        error: error instanceof Error ? error.message : '更新操作失败',
-      }));
-    } finally {
-      setBusy(false);
-    }
-  };
-  if (!update) return null;
-  const statusText: Record<DesktopUpdateState['status'], string> = {
-    disabled: '当前环境不支持更新检查',
-    idle: '尚未检查',
-    checking: '正在检查更新…',
-    available: `发现新版本 ${update.version ?? ''}`,
-    downloading: `正在下载 ${Math.round(update.progress ?? 0)}%`,
-    downloaded: `新版本 ${update.version ?? ''} 已下载`,
-    installing: '正在准备重启…',
-    'not-available': '已是最新版本',
-    error: update.error || '更新失败',
-  };
-  return (
-    <div className="update-panel" aria-live="polite">
-      <div>
-        <strong>版本更新</strong>
-        <p>
-          当前版本 v{update.currentVersion} · {statusText[update.status]}
-        </p>
-        {update.mode === 'manual' && update.status !== 'available' && (
-          <small>当前为手动安装模式，发现新版本后会打开下载链接。</small>
-        )}
-        {update.releaseNotes &&
-          (update.status === 'available' || update.status === 'downloaded') && (
-            <small>{update.releaseNotes}</small>
-          )}
-        {update.mode === 'manual' && update.status === 'available' && (
-          <small>下载后请退出句达，再打开安装包完成更新。</small>
-        )}
-      </div>
-      <div className="actions">
-        {update.status === 'available' && (
-          <Button disabled={busy} onClick={() => void run('downloadUpdate')}>
-            {update.mode === 'manual' ? <ArrowUpRight size={15} /> : <Download size={15} />}
-            {update.mode === 'manual' ? '打开下载链接' : '下载更新'}
-          </Button>
-        )}
-        {update.status === 'downloaded' && (
-          <Button disabled={busy} onClick={() => void run('installUpdate')}>
-            <RefreshCw size={15} /> 更新并重启
-          </Button>
-        )}
-        {update.status !== 'disabled' && update.status !== 'installing' && (
-          <Button
-            variant="secondary"
-            disabled={busy || update.status === 'downloading'}
-            onClick={() => void run('checkForUpdates')}
-          >
-            <RefreshCw size={15} /> 检查更新
-          </Button>
-        )}
-      </div>
-    </div>
-  );
-}
 export function SettingsPage({ state }: { state: any }) {
   const { data: models = [] } = useData<any[]>('models.list');
   const [model, setModel] = useState<any>(null);
@@ -370,7 +287,7 @@ export function SettingsPage({ state }: { state: any }) {
                   导出诊断
                 </Button>
               </div>
-              <UpdatePanel />
+              <p className="hint">当前版本 v{state?.version}</p>
               <p className="hint">
                 账号 Cookie 和 API Key
                 不随知识或诊断导出。模型请求仍会将必要上下文发送给你配置的服务。

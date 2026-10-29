@@ -603,28 +603,6 @@ export const apiInputs = {
 } as const;
 export type Method = keyof typeof apiInputs;
 export type Input<M extends Method> = z.input<(typeof apiInputs)[M]>;
-export type DesktopUpdateStatus =
-  | 'disabled'
-  | 'idle'
-  | 'checking'
-  | 'available'
-  | 'downloading'
-  | 'downloaded'
-  | 'installing'
-  | 'not-available'
-  | 'error';
-export interface DesktopUpdateState {
-  status: DesktopUpdateStatus;
-  currentVersion: string;
-  mode: 'manual' | 'automatic';
-  version?: string;
-  releaseNotes?: string;
-  releaseDate?: string;
-  size?: number;
-  progress?: number;
-  downloadUrl?: string;
-  error?: string;
-}
 export const developerMethods = new Set<Method>([
   'agents.list',
   'agents.save',
@@ -652,11 +630,6 @@ export interface DesktopApi {
   call<T = unknown>(method: Method, input?: unknown): Promise<T>;
   onChanged(callback: () => void): () => void;
   onNotice?(callback: (message: string) => void): () => void;
-  getUpdateState(): Promise<DesktopUpdateState>;
-  checkForUpdates(): Promise<DesktopUpdateState>;
-  downloadUpdate(): Promise<DesktopUpdateState>;
-  installUpdate(): Promise<void>;
-  onUpdate(callback: (state: DesktopUpdateState) => void): () => void;
 }
 export interface IncomingMessage {
   accountId: string;
