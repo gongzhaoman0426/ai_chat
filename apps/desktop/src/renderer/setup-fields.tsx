@@ -196,7 +196,10 @@ export function ModelFields({
               onChange={(e) => onChange({ ...model, maxTokens: Number(e.target.value) })}
             />
           </Field>
-          <Field label="超时（秒）">
+          <Field
+            label="超时（秒）"
+            hint="单轮模型调用（含该轮工具）的等待上限；深度思考模型建议 120 秒以上。"
+          >
             <input
               type="number"
               min={1}
