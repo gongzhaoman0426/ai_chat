@@ -38,7 +38,16 @@ import {
 } from './learning-evidence';
 import { humanLearningContext, HUMAN_LEARNING_SETTLE_MS } from './human-learning';
 import { BUILTIN_LEARNING_VERSION, type AiPort, type AppHost, type KnowledgeMatch } from './types';
-import { DomainError, Mutex, assert, hash, uid, errorText, isRetiredCloudModel } from './util';
+import {
+  DomainError,
+  Mutex,
+  assert,
+  hash,
+  uid,
+  errorText,
+  isRetiredCloudModel,
+  splitReplyText,
+} from './util';
 const mutableJobs = ['pending', 'retry_wait', 'running'];
 export class Engine {
   readonly lock = new Mutex();
@@ -1906,7 +1915,14 @@ export class Engine {
     input: Parameters<Engine['prepareOutbound']>[0] & { textAfter?: string },
   ) {
     assert(!input.textAfter?.trim() || input.attachmentId, '图片后文字需要同时选择图片');
-    if (!input.attachmentId || (!input.text.trim() && !input.textAfter?.trim())) {
+    // Model text replies are sent as a few short chat bubbles, like a human agent. QA
+    // originals, manual messages and image answers keep their exact text.
+    const textParts =
+      !input.attachmentId && input.origin === 'ai' ? splitReplyText(input.text) : [];
+    if (
+      textParts.length < 2 &&
+      (!input.attachmentId || (!input.text.trim() && !input.textAfter?.trim()))
+    ) {
       const outbound = await this.prepareOutbound(input);
       if (outbound.status !== 'prepared') return outbound;
       return this.dispatch(outbound.id);
@@ -1914,27 +1930,31 @@ export class Engine {
     // Persist the whole ordered answer before sending. Each receipt still goes
     // through dispatch's scope/config checks and associates with the same question.
     // An uncertain/rejected part cancels the remaining parts, never replays them.
-    const conversation = await this.db.conversation.findUniqueOrThrow({
-      where: { id: input.conversationId },
-    });
-    const account = await this.db.account.findUniqueOrThrow({
-      where: { id: conversation.accountId },
-    });
-    const caps = account.capabilities as unknown as Capabilities;
-    assert(caps.sendText && caps.sendImage, '平台当前不支持图文消息发送');
-    const attachment = await this.db.attachment.findUniqueOrThrow({
-      where: { id: input.attachmentId },
-    });
-    assert(knowledgeAllowed(attachment.storeId, conversation.storeId), '图片范围不匹配');
-    const { readFile } = await import('node:fs/promises');
-    const { join } = await import('node:path');
-    await readFile(join(this.dir, attachment.relativePath));
+    let parts: Array<{ text: string; attachmentId?: string }>;
+    const label = input.attachmentId ? '图文回答' : '分段回复';
+    if (input.attachmentId) {
+      const conversation = await this.db.conversation.findUniqueOrThrow({
+        where: { id: input.conversationId },
+      });
+      const account = await this.db.account.findUniqueOrThrow({
+        where: { id: conversation.accountId },
+      });
+      const caps = account.capabilities as unknown as Capabilities;
+      assert(caps.sendText && caps.sendImage, '平台当前不支持图文消息发送');
+      const attachment = await this.db.attachment.findUniqueOrThrow({
+        where: { id: input.attachmentId },
+      });
+      assert(knowledgeAllowed(attachment.storeId, conversation.storeId), '图片范围不匹配');
+      const { readFile } = await import('node:fs/promises');
+      const { join } = await import('node:path');
+      await readFile(join(this.dir, attachment.relativePath));
+      parts = [
+        ...(input.text.trim() ? [{ text: input.text }] : []),
+        { text: '', attachmentId: input.attachmentId },
+        ...(input.textAfter?.trim() ? [{ text: input.textAfter }] : []),
+      ];
+    } else parts = textParts.map((text) => ({ text }));
     const sequenceHash = hash([input.text, input.attachmentId, input.textAfter ?? '']);
-    const parts: Array<{ text: string; attachmentId?: string }> = [
-      ...(input.text.trim() ? [{ text: input.text }] : []),
-      { text: '', attachmentId: input.attachmentId },
-      ...(input.textAfter?.trim() ? [{ text: input.textAfter }] : []),
-    ];
     const outbounds: Awaited<ReturnType<Engine['prepareOutbound']>>[] = [];
     const cancelRemaining = async (reason: string) => {
       await this.db.outboundMessage.updateMany({
@@ -1958,13 +1978,13 @@ export class Engine {
       for (const outbound of outbounds) {
         result = outbound.status === 'prepared' ? await this.dispatch(outbound.id) : outbound;
         if (result.status !== 'confirmed') {
-          await cancelRemaining('图文回答前一条消息未确认，后续内容已停止，请人工核对');
+          await cancelRemaining(`${label}前一条消息未确认，后续内容已停止，请人工核对`);
           return result;
         }
       }
       return result;
     } catch (error) {
-      await cancelRemaining(`图文回答已停止：${errorText(error)}`);
+      await cancelRemaining(`${label}已停止：${errorText(error)}`);
       throw error;
     }
   }

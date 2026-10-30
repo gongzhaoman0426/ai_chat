@@ -1,4 +1,4 @@
-import { REPLY_RECEPTION_GUIDANCE } from '../../contracts/src/reply-guidance';
+import { REPLY_RECEPTION_GUIDANCE, REPLY_STYLE_GUIDANCE } from '../../contracts/src/reply-guidance';
 import { platformNames, type PlatformId } from '../../contracts/src/platform';
 
 export const HANDOFF_TOOL_DESCRIPTION =
@@ -17,6 +17,7 @@ export function replyInstructions(configuredPrompt: string, platform: PlatformId
   return [
     configuredPrompt,
     configuredPrompt.includes(REPLY_RECEPTION_GUIDANCE) ? '' : REPLY_RECEPTION_GUIDANCE,
+    configuredPrompt.includes(REPLY_STYLE_GUIDANCE) ? '' : REPLY_STYLE_GUIDANCE,
     KNOWLEDGE_RETRIEVAL_GUIDANCE,
     `当前平台：${platformNames[platform]}。平台工具已按当前店铺装配，无需选择平台或传入店铺/账号/买家 ID。`,
     '发送商品卡片或教程视频时，先查询当前店铺的商品或素材，再使用返回的 productRef / materialRef。发送工具是本轮的最终回复，成功后直接结束，不再补文字或重复发送。只看到视频占位文字或封面不代表理解了视频内容，必要时请买家描述问题。',

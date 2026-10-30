@@ -47,3 +47,14 @@ export class Mutex {
   }
 }
 export const iso = (date: Date | number) => new Date(date).toISOString();
+// AI replies separate chat bubbles with blank lines. Extra paragraphs fold into the last
+// bubble so one turn never floods the buyer.
+export const MAX_REPLY_PARTS = 3;
+export function splitReplyText(text: string) {
+  const parts = text
+    .split(/\r?\n[ \t]*\r?\n/)
+    .map((part) => part.trim())
+    .filter(Boolean);
+  if (parts.length <= MAX_REPLY_PARTS) return parts;
+  return [...parts.slice(0, MAX_REPLY_PARTS - 1), parts.slice(MAX_REPLY_PARTS - 1).join('\n')];
+}
