@@ -6,6 +6,7 @@ import {
 import {
   DEFAULT_REPLY_PROMPT,
   REPLY_RECEPTION_GUIDANCE,
+  REPLY_STYLE_GUIDANCE,
 } from '../packages/contracts/src/reply-guidance';
 
 describe.each([
@@ -18,6 +19,11 @@ describe.each([
   it('保留配置并追加一次统一规则，已有知识可答时无需重新调用工具', () => {
     expect(instructions.startsWith(`${configuredPrompt}\n`)).toBe(true);
     expect(instructions.split(REPLY_RECEPTION_GUIDANCE)).toHaveLength(2);
+    expect(instructions.split(REPLY_STYLE_GUIDANCE)).toHaveLength(2);
+    expect(instructions.indexOf(REPLY_STYLE_GUIDANCE)).toBeGreaterThan(
+      instructions.indexOf(REPLY_RECEPTION_GUIDANCE),
+    );
+    expect(REPLY_STYLE_GUIDANCE).toContain('条与条之间空一行');
     expect(instructions.split('问答检索规则：')).toHaveLength(2);
     expect(instructions.indexOf('问答检索规则：')).toBeGreaterThanOrEqual(configuredPrompt.length);
     expect(instructions).toContain('先读本轮 messages、knowledge 和已有工具结果');
