@@ -94,6 +94,8 @@ export function Inbox() {
     : detail.error
       ? undefined
       : conversations.find((c) => c.id === ui.conversationId);
+  // A manual takeover and an AI handoff both pause AI; either way the buyer is with a human.
+  const aiPaused = !!(conversation?.openedByHuman || conversation?.awaitingHuman);
   const store = stores.find((s) => s.id === conversation?.storeId) ?? conversation?.store;
   const storeOf = (c: any) => stores.find((s) => s.id === c.storeId);
   const { text, attachment, setText, setAttachment } = useComposerDraft(
@@ -460,14 +462,10 @@ export function Inbox() {
                   <Button
                     variant="secondary"
                     disabled={changingReception}
-                    onClick={() => changeReception(conversation.openedByHuman ? 'ai' : 'human')}
+                    onClick={() => changeReception(aiPaused ? 'ai' : 'human')}
                   >
                     <UserRound size={14} />
-                    {changingReception
-                      ? '处理中…'
-                      : conversation.openedByHuman
-                        ? '交还 AI'
-                        : '接管会话'}
+                    {changingReception ? '处理中…' : aiPaused ? '交还 AI' : '接管会话'}
                   </Button>
                   <Button
                     variant="ghost"
@@ -702,7 +700,7 @@ export function Inbox() {
                 />
                 <div className="composer-bottom">
                   <small>
-                    {conversation.openedByHuman
+                    {aiPaused
                       ? '人工接待中 · 处理完成后交还 AI'
                       : '发送消息不会暂停 AI，如需暂停请接管会话'}
                   </small>
