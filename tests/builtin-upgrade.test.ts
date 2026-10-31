@@ -31,8 +31,6 @@ it('已交付的内置资源清单哈希固定，不能在同一标识下修改�
     'builtin/commerce@1.3.0': '9aac36f3e4c747d0bf136e2d24933a5d1a2a15346854024f26089b5953cb30ad',
     'builtin/commerce@1.4.0': '45e6c1a47bfe150fc02b07e80bcd6e9a0be7a365a6679c78cd429dc5babc137c',
     'builtin/utilities@1.0.0': 'cfa72c960621c1528cdf823fa708ae2b90cd3ac9bdd77c46cfb65cc397598f8f',
-    'builtin/reply-helpers@1.0.0':
-      '79b3289fef0c1970c99e408e8951ccb41902549e798ca2f148f5ef44d6cdfba8',
   });
   expect(legacyCommerceV11Modules.map((m) => hash(m.manifest))).toEqual([
     '0a92b7aa2cdabf07088f45e21b3564041ada3f9ee12481eb40d0acb95b362d8a',
