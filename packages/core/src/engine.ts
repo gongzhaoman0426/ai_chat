@@ -252,6 +252,21 @@ export class Engine {
             data: { status: 'succeeded', leaseToken: null, leaseUntil: null, error: null },
           });
         } catch (e) {
+          // Waiting for an in-flight reply is not a failed attempt.
+          if (e instanceof DomainError && e.code === 'LEARNING_DEFERRED') {
+            await this.db.job.updateMany({
+              where: { id: job.id, leaseToken: job.leaseToken, status: 'running' },
+              data: {
+                status: 'retry_wait',
+                attempts: { decrement: 1 },
+                error: null,
+                leaseToken: null,
+                leaseUntil: null,
+                runAfter: new Date(Date.now() + 1500),
+              },
+            });
+            return;
+          }
           const cancelled = controller.signal.aborted || errorText(e).startsWith('STALE:');
           const blocked =
             e instanceof DomainError &&
@@ -1263,15 +1278,21 @@ export class Engine {
           contextMessageIds: json(humanContext.contextMessageIds),
         }
       : {};
+    // Later parts of one split reply complete the same answer: they keep the revision and
+    // its learning event instead of revising the turn once per part.
+    const continuation =
+      before?.status === 'answered' && (await this.continuesSequence(tx, before.id, outboundId));
     const turn = before
       ? await tx.answeredTurn.update({
           where: { id: before.id },
-          data: {
-            sourceRevision: { increment: 1 },
-            answeredAt: new Date(),
-            status: 'answered',
-            ...contextData,
-          },
+          data: continuation
+            ? { answeredAt: new Date() }
+            : {
+                sourceRevision: { increment: 1 },
+                answeredAt: new Date(),
+                status: 'answered',
+                ...contextData,
+              },
         })
       : await tx.answeredTurn.create({
           data: { storeId: c.storeId, conversationId, questionGroupId: group.id, ...contextData },
@@ -1281,8 +1302,27 @@ export class Engine {
       where: { id: group.id },
       data: { state: 'answered', autoEligible: false },
     });
-    if (await this.turnHasLearnableAnswer(tx, turn.id))
+    if (!continuation && (await this.turnHasLearnableAnswer(tx, turn.id)))
       await this.turnEvent(tx, turn, before ? 'turn.revised' : 'turn.answered');
+  }
+  private async continuesSequence(tx: Tx, turnId: string, outboundId?: string) {
+    if (!outboundId) return false;
+    const sequenceOf = (body: unknown) => (body as { sequenceHash?: string }).sequenceHash;
+    const outbound = await tx.outboundMessage.findUnique({ where: { id: outboundId } });
+    const sequence = outbound && sequenceOf(outbound.body);
+    if (!sequence) return false;
+    const answered = await tx.turnAnswer.findMany({
+      where: { turnId, outboundId: { not: null } },
+      select: { outboundId: true },
+    });
+    const earlier = await tx.outboundMessage.findMany({
+      where: {
+        id: { in: answered.map((a) => a.outboundId!) },
+        questionGroupId: outbound.questionGroupId,
+      },
+      select: { body: true },
+    });
+    return earlier.some((o) => sequenceOf(o.body) === sequence);
   }
   async associateManual(messageId: string, groupId: string) {
     await this.lock.run(() =>
@@ -2303,6 +2343,15 @@ export class Engine {
     });
     if (turn.status !== 'answered' || turn.sourceRevision !== Number(payload.sourceRevision))
       return;
+    // Evaluate a split reply once it is complete; later parts may still be on their way.
+    const sending = await this.db.outboundMessage.count({
+      where: {
+        questionGroupId: turn.questionGroupId,
+        origin: { not: 'human' },
+        status: { in: ['prepared', 'dispatching'] },
+      },
+    });
+    if (sending) throw new DomainError('LEARNING_DEFERRED', '回答仍在分段发送，稍后学习');
     assert(
       turn.answers.every(
         (a) =>
