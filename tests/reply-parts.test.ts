@@ -76,3 +76,94 @@ it('问答直答保留原文，不拆分', async () => {
   await flush(f.engine, f.db);
   expect(f.sends.map((s) => s.text)).toEqual([qa.answer]);
 });
+
+const learningRuns = async () =>
+  (await f!.db.aiRun.findMany({ where: { role: 'learning' } })).map((r) => ({
+    status: r.status,
+    answers: (r.input as any).answerMessageIds?.length,
+  }));
+
+it('分段回复只算一个回答，全部发完后学习一次', async () => {
+  f = await setup();
+  f.ai.replyResult = {
+    action: 'reply',
+    text: '在的～\n\n我可以帮您查商品、订单和物流。\n\n您想先办哪件事呢？',
+    evidenceIds: [],
+    reasonCode: 'test',
+  };
+  await f.engine.setPolicy({
+    storeId: f.account.storeId,
+    autoReplyEnabled: true,
+    autoLearnEnabled: true,
+  });
+  await f.engine.ingest(f.inbound('你能做啥'));
+  await flush(f.engine, f.db);
+  await flush(f.engine, f.db);
+  expect(f.sends).toHaveLength(3);
+  expect(f.ai.learnCalls).toBe(1);
+  expect(await learningRuns()).toEqual([{ status: 'succeeded', answers: 3 }]);
+  const turn = await f.db.answeredTurn.findFirstOrThrow();
+  expect(turn.sourceRevision).toBe(1);
+  expect(await f.db.turnAnswer.count({ where: { turnId: turn.id } })).toBe(3);
+  expect(await f.db.job.count({ where: { kind: 'learn', status: { not: 'succeeded' } } })).toBe(0);
+});
+
+it('后续分段停发时，只学习已发出的部分，且只学习一次', async () => {
+  f = await setup();
+  f.ai.replyResult = {
+    action: 'reply',
+    text: '有现货的。\n\n付款后 48 小时内发货。\n\n还有其他问题吗？',
+    evidenceIds: [],
+    reasonCode: 'test',
+  };
+  const send = f.host.send;
+  let n = 0;
+  f.host.send = async (c) => (++n === 2 ? { status: 'rejected', reason: '会话已关闭' } : send(c));
+  await f.engine.setPolicy({
+    storeId: f.account.storeId,
+    autoReplyEnabled: true,
+    autoLearnEnabled: true,
+  });
+  await f.engine.ingest(f.inbound('有货吗'));
+  await flush(f.engine, f.db);
+  await flush(f.engine, f.db);
+  const statuses = (await f.db.outboundMessage.findMany({ orderBy: { createdAt: 'asc' } })).map(
+    (o) => o.status,
+  );
+  expect(statuses).toEqual(['confirmed', 'rejected', 'cancelled']);
+  expect(f.ai.learnCalls).toBe(1);
+  expect(await learningRuns()).toEqual([{ status: 'succeeded', answers: 1 }]);
+});
+
+it('AI 分段回复后人工再补充，人工消息照常单独学习', async () => {
+  f = await setup();
+  f.ai.replyResult = {
+    action: 'reply',
+    text: '有现货的。\n\n付款后 48 小时内发货。',
+    evidenceIds: [],
+    reasonCode: 'test',
+  };
+  await f.engine.setPolicy({
+    storeId: f.account.storeId,
+    autoReplyEnabled: true,
+    autoLearnEnabled: true,
+  });
+  const m = await f.engine.ingest(f.inbound('有货吗'));
+  await flush(f.engine, f.db);
+  await flush(f.engine, f.db);
+  expect(f.ai.learnCalls).toBe(1);
+  await f.engine.sendManual({
+    conversationId: m.conversationId,
+    text: '更正：今天下单当天发货。',
+    requestId: 'correct-split',
+  });
+  await flush(f.engine, f.db);
+  await flush(f.engine, f.db);
+  // A human follow-up is learned as its own context turn; the split AI reply stays one answer.
+  const turns = await f.db.answeredTurn.findMany({ orderBy: { answeredAt: 'asc' } });
+  expect(turns.map((t) => [t.associationMode, t.sourceRevision])).toEqual([
+    ['explicit', 1],
+    ['conversation_context', 1],
+  ]);
+  expect(f.ai.learnCalls).toBe(2);
+});
