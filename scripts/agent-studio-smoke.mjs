@@ -66,10 +66,7 @@ export async function checkAgentStudio({ app, page, modelId, modelCalls }) {
   await picker.getByRole('checkbox', { name: '店铺客服工具', exact: true }).check();
   await page.screenshot({ path: '.artifacts/agent-mount-picker.png', animations: 'disabled' });
   await picker.getByRole('button', { name: '确认挂载', exact: true }).click();
-  await studio.getByRole('button', { name: '添加 Workflow', exact: true }).click();
-  picker = page.getByRole('dialog', { name: '挂载 Workflow', exact: true });
-  await picker.getByRole('checkbox', { name: '客服处理流程', exact: true }).check();
-  await picker.getByRole('button', { name: '确认挂载', exact: true }).click();
+  assert.equal(await studio.getByRole('button', { name: '添加 Workflow' }).count(), 0);
   await studio.getByRole('button', { name: '添加子 Agent', exact: true }).click();
   picker = page.getByRole('dialog', { name: '挂载子 Agent', exact: true });
   assert.equal(await picker.getByLabel('发布版本', { exact: true }).count(), 0);
@@ -97,7 +94,7 @@ export async function checkAgentStudio({ app, page, modelId, modelCalls }) {
   assert.ok(saved.draftConfig.toolkitIds.includes('builtin/commerce'));
   assert.ok(!saved.draftConfig.toolkitIds.some((id) => id.startsWith('builtin/pdd@')));
   assert.ok(!saved.draftConfig.toolkitIds.includes('builtin/pdd@1.0.0'));
-  assert.equal(saved.draftConfig.workflowIds.length, 1);
+  assert.equal(saved.draftConfig.workflowIds, undefined);
   assert.equal(saved.draftConfig.subAgents[0].alias, 'support');
   await studio.getByRole('button', { name: '关闭 Agent 编辑器', exact: true }).click();
   await page.locator('.agent-card').filter({ hasText: '山野生活 · 售前助手' }).click();

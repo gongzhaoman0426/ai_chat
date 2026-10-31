@@ -517,23 +517,6 @@ try {
     installed.id,
   );
   assert.equal(trial.text, '您好，欢迎来到测试店。请问需要什么帮助？');
-  // New Workflow examples are normal Agent capabilities, not alternate reply entries.
-  await app.evaluate(({ dialog }, path) => {
-    dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [path] });
-  }, resolve('extensions-dist/reply-polish-1.1.0.zip'));
-  const installedWorkflow = await page.evaluate(() =>
-    window.judesk.call('assets.install', { kind: 'workflow' }),
-  );
-  const workflowTrial = await page.evaluate(
-    (assetId) =>
-      window.judesk.call('assets.test', {
-        assetId,
-        memberId: 'paragraphs',
-        input: { text: '  商品规格\r\n\r\n发货说明  ' },
-      }),
-    installedWorkflow.id,
-  );
-  assert.deepEqual(workflowTrial, { paragraphs: ['商品规格', '发货说明'] });
   // A local fixture exercises the actual packaged Mastra provider, without paid model traffic.
   let replyModelCalls = 0;
   const learningRequests = [];

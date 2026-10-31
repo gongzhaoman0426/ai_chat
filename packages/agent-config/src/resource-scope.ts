@@ -11,7 +11,7 @@ import { assert } from '../../core/src/util';
 
 type Db = PrismaClient | Tx;
 export const resourceIdentity = (kind: ResourceKind, id: string) => {
-  const identity = kind === 'toolkit' || kind === 'workflow' ? id.split('@')[0] : id;
+  const identity = kind === 'toolkit' ? id.split('@')[0] : id;
   return kind === 'toolkit' && identity === 'builtin/pdd' ? 'builtin/commerce' : identity;
 };
 export async function getResourceScope(db: Db, kind: ResourceKind, id: string) {
@@ -60,7 +60,7 @@ export async function saveResourceScope(
             where: { assetId: resourceId, status: 'enabled' },
           });
   assert(exists, '资源已删除或不存在');
-  if (input.kind === 'toolkit' || input.kind === 'workflow')
+  if (input.kind === 'toolkit')
     assert(
       (exists as { manifest: { kind?: string } }).manifest.kind === input.kind,
       '资源类型不匹配',

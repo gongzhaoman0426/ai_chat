@@ -529,9 +529,7 @@ export function AgentRuns({ store }: { store?: any }) {
               {!id ? (
                 <Empty icon={<Bot size={36} />}>
                   <h3>每一步，都有记录</h3>
-                  <p>
-                    选择一次运行，查看模型回合、工具调用、Skill 脚本与 Workflow 的实际执行结果。
-                  </p>
+                  <p>选择一次运行，查看模型回合、工具调用和 Skill 脚本的实际执行结果。</p>
                 </Empty>
               ) : detail.isPending ? (
                 <Empty>正在加载执行步骤…</Empty>

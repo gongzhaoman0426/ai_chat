@@ -4,17 +4,17 @@
 
 ## 集合与成员
 
-Toolkit 通过 `createTools(context)` 返回原生 Mastra Tool Map；Workflow 通过 `createWorkflows(context)` 返回已 `commit()` 的 Mastra Workflow Map。一个集合可以包含多个成员。成员完整 ID 为 `assetId/memberId`，例如 `local/shop-helpers/greeting`；安装版本 ID 为 `local/shop-helpers@1.0.0`。
+扩展只有 Toolkit 一种：通过 `createTools(context)` 返回原生 Mastra Tool Map。一个集合可以包含多个成员。成员完整 ID 为 `assetId/memberId`，例如 `local/shop-helpers/greeting`；安装版本 ID 为 `local/shop-helpers@1.0.0`。
 
-Toolkit 挂载使用包名 `local/shop-helpers`，自动跟随本机已安装、已启用的最高语义版本；旧的版本 ID 挂载也按包解析。更新 ZIP 后无需重新发布 Agent。单轮锁定实际代码与设置，下一轮使用更新。Workflow 仍按所选版本运行。完整规则见 [Toolkit 自动使用最新版](toolkit-latest.md)。
+Toolkit 挂载使用包名 `local/shop-helpers`，自动跟随本机已安装、已启用的最高语义版本；旧的版本 ID 挂载也按包解析。更新 ZIP 后无需重新发布 Agent。单轮锁定实际代码与设置，下一轮使用更新。完整规则见 [Toolkit 自动使用最新版](toolkit-latest.md)。
 
-接口定义在 [extension-sdk](../packages/extension-sdk/src/index.ts)。直接参考 [Toolkit 示例](../toolkits/local/shop-helpers/index.ts) 和 [Workflow 示例](../workflows/local/reply-polish/index.ts)。
+接口定义在 [extension-sdk](../packages/extension-sdk/src/index.ts)。直接参考 [Toolkit 示例](../toolkits/local/shop-helpers/index.ts)。
 
 `manifest` 声明 `apiVersion`、`assetId`、语义版本、集合类型、名称、描述、`settingsFields` 和 `members`。成员分别声明输入 / 输出 JSON Schema、所需平台能力。工厂实际导出的成员必须与清单一致，不允许少导出、额外导出或重复成员 ID。
 
 ## 打包与安装
 
-执行 `pnpm extensions:build` 将项目内两个示例打包成 ZIP。修改构建脚本的 source 数组可以增加自己的集合。
+执行 `pnpm extensions:build` 将项目内的示例打包成 ZIP。修改构建脚本的 source 数组可以增加自己的集合。
 
 ```text
 extension.zip
@@ -48,22 +48,17 @@ SDK 不提供向买家发送、审批、发布知识或替换学习 Agent 的接
 
 本地 JS 运行在有 Node 权限的业务进程；以上是可信扩展遵守的宿主业务契约，不是阻止恶意扩展访问系统的 OS 沙箱。
 
-## Workflow 作为 Agent 能力
+## Workflow 已移除
 
-Workflow 与 Toolkit 使用同一种挂载方式：在 Agent 编辑器选择集合，发布配置后，由工作 Agent 根据当前问题决定调用哪个成员。工作绑定只选择 Agent，不需要再指定流程或策略入口。
+Workflow 扩展类型已从开源 Demo 中移除：不能再安装 Workflow 扩展包，Agent 编辑器也不再提供挂载。需要多步处理时，把步骤写成 Toolkit 成员，或写进 Skill 的处理方法，由 Agent 按需调用。
 
-每个成员定义自己的输入和输出。例如 `local/reply-polish@1.1.0` 提供两个不调用模型的成员：
+兼容旧数据：此前保存或发布的 Agent 若挂载过 Workflow，读取时忽略这些挂载，Agent 照常使用其余能力接待；店铺的「当前接待配置」会提示重新发布以移除。已安装的 Workflow 包保留在资料库中但不再列出或执行，历史 Agent 执行记录中的流程步骤仍可查看。
 
-- `normalize`：接收 `{ "text": "待整理文本" }`，返回清理后的 `{ "text": "整理后文本" }`。
-- `paragraphs`：先清理换行，再按空行分段，返回 `{ "paragraphs": ["商品规格", "发货说明"] }`。
-
-Workflow 结果交给调用它的 Agent，最终回复或转人工候选仍由 Agent 与宿主处理。高阈值问答直答、接待资格、发送确认、学习事件和人工审批由宿主负责。
-
-自 2026-09-08 起不再支持独立回复策略入口，也不提供 `agents.runSelected`。旧版 `contract: "reply.v1"` 仅用于读取已安装清单，相关成员不显示、不可执行，新安装拒绝这种声明。旧集合中普通成员继续可用。修改扩展请递增版本，不覆盖旧版本或改写已发布 Agent 的依赖哈希。
+不支持独立回复策略入口（`contract: "reply.v1"`），新安装拒绝这种声明。修改扩展请递增版本，不覆盖旧版本。
 
 ## 调试和生效
 
-成员试跑按静态输入 / 输出 schema 校验，平台与知识为夹具。Agent 调试实际运行配置中的工具、Workflow 和子 Agent，使用独立 Memory，不写生产发送、学习或知识表。模型用量在结果与 `sandbox/runs.jsonl` 中可见。
+成员试跑按静态输入 / 输出 schema 校验，平台与知识为夹具。Agent 调试实际运行配置中的工具和子 Agent，使用独立 Memory，不写生产发送、学习或知识表。模型用量在结果与 `sandbox/runs.jsonl` 中可见。
 
 保存草稿不会改变工作绑定。发布产生不可变修订；已绑定该 Agent 的工作入口自动切到最新版，并校验依赖、循环和必填设置。全局 / 店铺设置修改产生新 revision，更新配置代次；已经开始的旧回复必须重新规划或取消。
 

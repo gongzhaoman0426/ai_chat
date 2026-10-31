@@ -252,14 +252,13 @@ export type SkillRecord = SkillInput & {
   updatedAt: string;
   mountedBy: Array<{ id: string; name: string }>;
 };
-export const agentConfigSchema = z
+const agentConfigObject = z
   .object({
     name: z.string().trim().min(1).max(80),
     description: z.string().max(1000).default(''),
     prompt: z.string().min(1).max(30000),
     modelProfileId: id.nullable().default(null),
     toolkitIds: z.array(id).max(30).default([]),
-    workflowIds: z.array(id).max(20).default([]),
     skillIds: z.array(id).max(30).default([]),
     subAgents: z
       .array(
@@ -279,7 +278,15 @@ export const agentConfigSchema = z
     maxDepth: z.number().int().min(1).max(4).default(2),
   })
   .strict();
-export type AgentConfig = z.infer<typeof agentConfigSchema>;
+// Workflow was removed. Drafts and published snapshots saved before that still carry
+// `workflowIds`; drop it on read so old Agents keep loading and compare as unchanged.
+export const agentConfigSchema = z.preprocess((value) => {
+  if (!value || typeof value !== 'object' || !('workflowIds' in value)) return value;
+  const { workflowIds: _, ...rest } = value as Record<string, unknown>;
+  return rest;
+}, agentConfigObject);
+export const agentConfigFields = Object.keys(agentConfigObject.shape);
+export type AgentConfig = z.infer<typeof agentConfigObject>;
 export const modelSchema = z
   .object({
     id: id.optional(),
@@ -559,12 +566,7 @@ export const apiInputs = {
   'resources.scopes': empty,
   'resources.setScope': resourceScopeInput,
   'assets.list': empty,
-  'assets.install': z
-    .object({
-      kind: z.enum(['toolkit', 'workflow']).optional(),
-      storeScope: storeScopeSchema.optional(),
-    })
-    .strict(),
+  'assets.install': z.object({ storeScope: storeScopeSchema.optional() }).strict(),
   'assets.settings': z
     .object({
       assetId: id,

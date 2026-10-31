@@ -1,5 +1,7 @@
 # Agent 发布与店铺应用
 
+> Workflow 扩展已移除，本文中与 Workflow 相关的内容仅为历史记录，见[本地扩展开发](extension-development.md#workflow-已移除)。
+
 更新日期：2026-09-10。
 
 Agent 在产品中只区分「未发布」「有修改待发布」「已发布」。用户不选择或管理 Agent 版本，编辑器只有一个「发布」按钮。

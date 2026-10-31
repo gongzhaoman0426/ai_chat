@@ -46,10 +46,7 @@ export async function resolveRuntimeToolkits(db: Db, root: PublishedConfig, revi
       skills: await currentSkills(db, config, skills),
       subAgents: children.map(({ alias, revision }) => ({ alias, revisionId: revision.id })),
       toolkitIds: toolkits.map((row) => row.id),
-      assetLock: [
-        ...(config.assetLock ?? []).filter((lock) => config.workflowIds.includes(lock.id)),
-        ...toolkits.map((row) => ({ id: row.id, hash: row.artifactHash })),
-      ],
+      assetLock: toolkits.map((row) => ({ id: row.id, hash: row.artifactHash })),
     };
     for (const { revision } of children) {
       await visit(revision.configSnapshot as unknown as PublishedConfig, revision.id, depth + 1);

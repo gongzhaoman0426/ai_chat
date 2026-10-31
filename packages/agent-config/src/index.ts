@@ -14,7 +14,6 @@ import {
   LEGACY_COMMERCE_TOOLKIT_ID,
   RETIRED_PDD_TOOLKIT_IDS,
   toolkitReferences,
-  toolkitIdentity,
   normalizeAgentToolkits,
 } from '../../contracts/src/toolkit-catalog';
 import { snapshotSkills, publishedSkills, type PublishedSkill } from './skills';
@@ -39,6 +38,8 @@ export type PublishedConfig = AgentConfig & {
   modelSnapshot: Record<string, unknown> | null;
   assetLock: Array<{ id: string; hash: string }>;
   skills?: PublishedSkill[]; // Old immutable revisions have no skills.
+  // Revisions published before Workflow was removed may list mounts; they no longer run.
+  workflowIds?: string[];
 };
 export class AgentService {
   constructor(private db: PrismaClient) {}
@@ -235,27 +236,14 @@ export class AgentService {
       ? await tx.modelProfile.findUnique({ where: { id: config.modelProfileId } })
       : null;
     assert(allowUnconfigured || model?.kind === 'chat', '请先选择有效的对话模型');
-    const ids = [...config.toolkitIds, ...config.workflowIds];
-    assert(new Set(ids).size === ids.length, '请勿重复挂载资源');
-    const assets = [
-      ...(await Promise.all(config.toolkitIds.map((id) => currentToolkit(tx, id)))),
-      ...(await tx.installedExtension.findMany({
-        where: { id: { in: config.workflowIds }, status: 'enabled' },
-      })),
-    ];
-    assert(assets.length === ids.length, '挂载资源缺失或未启用');
+    assert(new Set(config.toolkitIds).size === config.toolkitIds.length, '请勿重复挂载资源');
+    const assets = await Promise.all(config.toolkitIds.map((id) => currentToolkit(tx, id)));
     assert(
       new Set(assets.map((a) => a.assetId)).size === assets.length,
       '同一资源只能挂载一个版本，请移除旧版本再发布',
     );
-    for (const a of assets) {
-      const manifest = a.manifest as { kind: string };
-      assert(
-        (config.toolkitIds.includes(toolkitIdentity(a.id)) ? 'toolkit' : 'workflow') ===
-          manifest.kind,
-        '资源集合类型不匹配',
-      );
-    }
+    for (const a of assets)
+      assert((a.manifest as { kind: string }).kind === 'toolkit', '资源集合类型不匹配');
     assert(
       new Set(config.subAgents.map((s) => s.alias)).size === config.subAgents.length,
       '子 Agent 别名重复',
@@ -301,11 +289,6 @@ export class AgentService {
       const current = await currentToolkit(tx, id);
       const recorded = c.assetLock?.find((lock) => lock.id === current.id);
       assert(!recorded || recorded.hash === current.artifactHash, '资源版本不可用');
-    }
-    for (const a of c.assetLock ?? []) {
-      if (!c.workflowIds.includes(a.id)) continue;
-      const asset = await tx.installedExtension.findUnique({ where: { id: a.id } });
-      assert(asset?.status === 'enabled' && asset.artifactHash === a.hash, '资源版本不可用');
     }
     for (const child of c.subAgents) {
       const current = await currentAgentPublication(tx, child.revisionId);
@@ -460,10 +443,12 @@ export class AgentService {
     seen.add(revisionId);
     const rev = await tx.agentRevision.findUniqueOrThrow({ where: { id: revisionId } });
     const config = rev.configSnapshot as unknown as PublishedConfig;
-    for (const reference of [...config.toolkitIds, ...config.workflowIds]) {
-      const kind = config.toolkitIds.includes(reference) ? 'toolkit' : 'workflow';
-      const assetId = kind === 'toolkit' ? (await currentToolkit(tx, reference)).id : reference;
-      if (scopeKey !== 'global' && !(await resourceAllowed(tx, kind, assetId, scopeKey.slice(6))))
+    for (const reference of config.toolkitIds) {
+      const assetId = (await currentToolkit(tx, reference)).id;
+      if (
+        scopeKey !== 'global' &&
+        !(await resourceAllowed(tx, 'toolkit', assetId, scopeKey.slice(6)))
+      )
         continue;
       if (scopeKey !== 'global') {
         const [asset, store] = await Promise.all([

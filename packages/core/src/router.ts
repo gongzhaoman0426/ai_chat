@@ -561,7 +561,8 @@ export class Router {
         break;
       }
       case 'resources.scopes':
-        result = await db.resourceScope.findMany();
+        // Scope rows of the removed Workflow kind are kept on disk but no longer apply.
+        result = await db.resourceScope.findMany({ where: { kind: { not: 'workflow' } } });
         break;
       case 'resources.setScope':
         result = await this.engine.lock.run(() =>
@@ -574,11 +575,11 @@ export class Router {
       case 'assets.install': {
         const knownAssets = await db.installedExtension.findMany({ select: { assetId: true } });
         const file = await host.pickFile('extension');
-        result = file ? await this.ai.assets.install(file, input.kind) : null;
+        result = file ? await this.ai.assets.install(file) : null;
         if (result && input.storeScope) {
           const asset = result as {
             id: string;
-            manifest: { kind: 'toolkit' | 'workflow'; assetId: string };
+            manifest: { kind: 'toolkit'; assetId: string };
           };
           if (
             !knownAssets.some((a) => a.assetId === asset.manifest.assetId) &&
@@ -671,27 +672,16 @@ export class Router {
           logger: { info: () => {} },
         };
         const module = await this.ai.assets.module(input.assetId);
-        if (module.manifest.kind === 'workflow')
-          result = await this.ai.assets.runWorkflow(
-            input.assetId,
-            input.memberId,
-            input.input,
-            ctx,
-            new Set(['history', 'goods', 'orders', 'orderRemark']),
-            async () => {},
-          );
-        else {
-          const tools = await this.ai.assets.tools(
-            input.assetId,
-            ctx,
-            new Set(['history', 'goods', 'orders', 'orderRemark']),
-            async () => {},
-          );
-          const key = this.ai.assets.alias(`${module.manifest.assetId}/${input.memberId}`);
-          const tool = tools[key];
-          assert(tool && 'execute' in tool && typeof tool.execute === 'function', '工具不存在');
-          result = await (tool.execute as any)(input.input, {});
-        }
+        const tools = await this.ai.assets.tools(
+          input.assetId,
+          ctx,
+          new Set(['history', 'goods', 'orders', 'orderRemark']),
+          async () => {},
+        );
+        const key = this.ai.assets.alias(`${module.manifest.assetId}/${input.memberId}`);
+        const tool = tools[key];
+        assert(tool && 'execute' in tool && typeof tool.execute === 'function', '工具不存在');
+        result = await (tool.execute as any)(input.input, {});
         break;
       }
       case 'models.list':

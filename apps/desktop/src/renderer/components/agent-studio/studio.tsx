@@ -30,7 +30,6 @@ import {
   Sparkles,
   Trash2,
   Upload,
-  Waypoints,
   X,
 } from 'lucide-react';
 import { api, client, date, useAvailablePlatforms, useUi } from '../../api';
@@ -563,10 +562,7 @@ export function AgentStudio({
                   能力配置
                 </h2>
                 <span className="studio-count">
-                  {config.skillIds.length +
-                    config.toolkitIds.length +
-                    config.workflowIds.length +
-                    config.subAgents.length}
+                  {config.skillIds.length + config.toolkitIds.length + config.subAgents.length}
                 </span>
               </header>
               <fieldset disabled={!!busy} className="agent-fieldset studio-panel-scroll">
@@ -579,7 +575,7 @@ export function AgentStudio({
                   skills={skills}
                 />
                 <p className="studio-capability-intro">
-                  组合技能、工具、流程和专业助手。“店铺客服工具”会随当前接待店铺自动选择平台能力。
+                  组合技能、工具和专业助手。“店铺客服工具”会随当前接待店铺自动选择平台能力。
                 </p>
                 <details className="studio-capability" open>
                   <summary>
@@ -642,9 +638,9 @@ export function AgentStudio({
                     </button>
                   </div>
                 </details>
-                {(['toolkit', 'workflow'] as const).map((kind) => {
+                {(['toolkit'] as const).map((kind) => {
                   const ids = config[mountKey[kind]];
-                  const Icon = kind === 'toolkit' ? Blocks : Waypoints;
+                  const Icon = Blocks;
                   return (
                     <details key={kind} className="studio-capability" open>
                       <summary>
@@ -668,7 +664,7 @@ export function AgentStudio({
                                 <strong title={id}>{asset?.manifest.name || '资源已缺失'}</strong>
                                 <small>
                                   {asset
-                                    ? `${kind === 'toolkit' ? '自动跟随最新 · 当前 ' : ''}v${asset.version} · ${asset.manifest.members.length} 个成员${asset.status !== 'enabled' ? ' · 已停用' : ''}`
+                                    ? `自动跟随最新 · 当前 v${asset.version} · ${asset.manifest.members.length} 个成员${asset.status !== 'enabled' ? ' · 已停用' : ''}`
                                     : id}
                                 </small>
                               </div>
@@ -685,11 +681,7 @@ export function AgentStudio({
                           );
                         })}
                         {!ids.length && (
-                          <p className="studio-capability-empty">
-                            {kind === 'toolkit'
-                              ? '添加查询、计算等可调用工具。'
-                              : '添加可复用的业务处理流程。'}
-                          </p>
+                          <p className="studio-capability-empty">添加查询、计算等可调用工具。</p>
                         )}
                         <button className="studio-add" onClick={() => setMount(kind)}>
                           <Plus size={14} />

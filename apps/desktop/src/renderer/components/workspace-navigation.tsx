@@ -20,8 +20,7 @@ export function WorkspaceNavigation({ developer }: { developer: boolean }) {
   const ui = useUi();
   const [advanced, setAdvanced] = useState(true);
   const [compact, setCompact] = useState(false);
-  // The extensions entry covers both the Toolkit and Workflow library pages.
-  const current = ui.page === 'workflows' ? 'toolkits' : ui.page;
+  const current = ui.page;
   const item = (id: typeof ui.page, label: string, Icon: typeof Store, detail?: string) => (
     <button
       key={id}
@@ -81,7 +80,7 @@ export function WorkspaceNavigation({ developer }: { developer: boolean }) {
               <nav aria-label="高级工作室">
                 {item('agents', '助手', Bot, '配置客服助手与全局默认')}
                 {item('skills', 'Skills', BookOpenText, '编写技能与脚本')}
-                {item('toolkits', '扩展', Blocks, '管理 Toolkit 与 Workflow')}
+                {item('toolkits', '扩展', Blocks, '管理 Toolkit 工具库')}
                 {item('runs', 'Agent 执行', Activity, '查看每一步调用与结果')}
               </nav>
             )}

@@ -4,20 +4,12 @@ import { resolve } from 'node:path';
 import AdmZip from 'adm-zip';
 
 export async function checkSkills({ app, page, modelId, modelCalls }) {
-  for (const kind of ['Toolkit', 'Workflow']) {
-    await page.getByRole('button', { name: '扩展', exact: true }).click();
-    await page
-      .getByRole('tab', { name: `${kind} ${kind === 'Toolkit' ? '工具库' : '流程库'}` })
-      .click();
-    await page.getByRole('button', { name: `安装 ${kind}`, exact: true }).waitFor();
-    const badges = await page.locator('.asset-card > .badge:first-of-type').allTextContents();
-    assert.ok(badges.length > 0);
-    assert.ok(badges.every((b) => b === kind));
-    await page.screenshot({
-      path: `.artifacts/${kind.toLowerCase()}-library.png`,
-      animations: 'disabled',
-    });
-  }
+  await page.getByRole('button', { name: '扩展', exact: true }).click();
+  await page.getByRole('button', { name: '安装 Toolkit', exact: true }).waitFor();
+  const badges = await page.locator('.asset-card > .badge:first-of-type').allTextContents();
+  assert.ok(badges.length > 0);
+  assert.ok(badges.every((b) => b === 'Toolkit'));
+  await page.screenshot({ path: '.artifacts/toolkit-library.png', animations: 'disabled' });
   await page.getByRole('button', { name: 'Skills', exact: true }).click();
   await page.getByRole('button', { name: '新建 Skill', exact: true }).click();
   const editor = page.locator('.skill-editor-dialog');

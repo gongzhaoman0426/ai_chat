@@ -208,33 +208,6 @@ it('真实模型并行调用同名工具，输入结果按调用 ID 区分并实
     detail.steps.filter((s: any) => s.kind === 'model').every((s: any) => s.input.messages?.length),
   ).toBe(true);
 });
-it('Workflow 的模型工具调用与内部步骤有层级，保存实际输入输出', async () => {
-  const answers: Answer[] = [];
-  const n = await init(answers);
-  const name = ai!.assets.alias('builtin/reply-helpers@1.0.0/normalize');
-  answers.push(
-    [{ name, args: { input: { text: '  工作流输出  ' } }, id: 'workflow-call' }],
-    '工作流完成',
-  );
-  const detail = await n.run({
-    ...defaultConfig(n.model.id),
-    workflowIds: ['builtin/reply-helpers@1.0.0'],
-  });
-  expect(detail.status).toBe('succeeded');
-  expect(n.requests).toHaveLength(2);
-  const workflow = detail.steps.find((s: any) => s.kind === 'workflow');
-  expect(workflow).toMatchObject({
-    status: 'succeeded',
-    input: { input: { text: '  工作流输出  ' } },
-    output: { text: '工作流输出' },
-  });
-  expect(detail.steps.find((s: any) => s.kind === 'workflow_step')).toMatchObject({
-    parentId: workflow.id,
-    status: 'succeeded',
-    input: { text: '  工作流输出  ' },
-    output: { text: '工作流输出' },
-  });
-});
 it('子 Agent 和 Skill 加载/脚本执行都被记录，脚本 stdout 与退出码可追踪', async () => {
   const t = await init([
     [{ name: 'delegate_helper', args: { input: '执行脚本' }, id: 'delegate-1' }],

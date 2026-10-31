@@ -597,7 +597,7 @@ export function SetupGuide({
                 <article>
                   <Bot size={23} />
                   <h3>高级定制</h3>
-                  <p>想自己编排 Agent、Skills、Toolkit 或 Workflow？在系统设置中打开高级定制。</p>
+                  <p>想自己编排 Agent、Skills 或 Toolkit？在系统设置中打开高级定制。</p>
                   <Button
                     variant="secondary"
                     disabled={!!busy}

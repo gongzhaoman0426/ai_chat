@@ -5,6 +5,7 @@ import {
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   agentConfigSchema,
+  agentConfigFields,
   type AgentConfig,
 } from '../../../../../../packages/contracts/src/index';
 import { api, client } from '../../api';
@@ -39,14 +40,12 @@ export type AssetOption = {
     members: { id: string; name: string }[];
   };
 };
-export type MountKind = 'toolkit' | 'workflow';
-export const mountKey = { toolkit: 'toolkitIds', workflow: 'workflowIds' } as const;
-export const mountLabel = { toolkit: 'Toolkit', workflow: 'Workflow' } as const;
+export type MountKind = 'toolkit';
+export const mountKey = { toolkit: 'toolkitIds' } as const;
+export const mountLabel = { toolkit: 'Toolkit' } as const;
 export const findMountedAsset = (assets: AssetOption[], kind: MountKind, id: string) =>
   assets.find(
-    (asset) =>
-      asset.manifest.kind === kind &&
-      (kind === 'toolkit' ? toolkitIdentity(asset.id) === toolkitIdentity(id) : asset.id === id),
+    (asset) => asset.manifest.kind === kind && toolkitIdentity(asset.id) === toolkitIdentity(id),
   );
 export const newAgent = (): AgentConfig => ({
   name: '',
@@ -54,7 +53,6 @@ export const newAgent = (): AgentConfig => ({
   prompt: DEFAULT_REPLY_PROMPT,
   modelProfileId: null,
   toolkitIds: ['builtin/utilities', 'builtin/commerce'],
-  workflowIds: [],
   skillIds: [],
   subAgents: [],
   memory: { lastMessages: 20, workingMemory: false },
@@ -69,9 +67,7 @@ export function publicationStatus(record: AgentRecord, config = record.draftConf
   if (!latest) return '未发布';
   if (!latest.configSnapshot) return '已发布';
   const comparable = (value: AgentConfig) => {
-    const fields = Object.fromEntries(
-      Object.keys(agentConfigSchema.shape).map((key) => [key, (value as any)[key]]),
-    );
+    const fields = Object.fromEntries(agentConfigFields.map((key) => [key, (value as any)[key]]));
     const parsed = agentConfigSchema.safeParse(fields);
     return JSON.stringify(parsed.success ? normalizeAgentToolkits(parsed.data) : fields);
   };

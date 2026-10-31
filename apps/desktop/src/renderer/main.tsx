@@ -31,7 +31,6 @@ const pageTitles = {
   agents: '助手',
   skills: 'Skills',
   toolkits: '扩展',
-  workflows: '扩展',
   runs: 'Agent 执行',
   setup: '上手引导',
 };
@@ -85,7 +84,7 @@ function App() {
     if (!linkedStores.length && ui.storeId) useUi.setState({ storeId: '' });
   }, [linkedStores, ui.storeId]);
   useEffect(() => {
-    if (!developer && ['agents', 'skills', 'toolkits', 'workflows', 'runs'].includes(ui.page))
+    if (!developer && ['agents', 'skills', 'toolkits', 'runs'].includes(ui.page))
       ui.setPage('inbox');
   }, [developer, ui.page]);
   useEffect(() => {
@@ -192,9 +191,7 @@ function App() {
             ) : ui.page === 'skills' ? (
               <Skills />
             ) : ui.page === 'toolkits' ? (
-              <Assets key="toolkit" kind="toolkit" />
-            ) : ui.page === 'workflows' ? (
-              <Assets key="workflow" kind="workflow" />
+              <Assets />
             ) : ui.page === 'runs' && developer ? (
               <AgentRuns store={store} />
             ) : (

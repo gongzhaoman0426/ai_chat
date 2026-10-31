@@ -1,5 +1,7 @@
 # 平台接入设计
 
+> Workflow 扩展已移除，本文中与 Workflow 相关的内容仅为历史记录，见[本地扩展开发](extension-development.md#workflow-已移除)。
+
 版本：v0.7
 
 方案日期：2026-09-09

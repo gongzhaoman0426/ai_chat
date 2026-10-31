@@ -227,7 +227,7 @@ it('技能 API 受开发者模式控制，导入先预览不自动入库；扩�
   expect(await f.db.skillDefinition.count()).toBe(0);
   const row = (await router.call('skills.save', { config: guide })) as { id: string };
   expect(row.id).toBeTruthy();
-  expect(apiInputs['assets.install'].parse({ kind: 'toolkit' })).toEqual({ kind: 'toolkit' });
+  expect(apiInputs['assets.install'].safeParse({ kind: 'workflow' }).success).toBe(false);
   const manifest = {
     apiVersion: 1,
     assetId: 'local/type-check',
@@ -253,7 +253,7 @@ it('技能 API 受开发者模式控制，导入先预览不自动入库；扩�
   await writeFile(extension, zip.toBuffer());
   const assets = new AssetService(f.db, f.dir);
   try {
-    await expect(assets.install(extension, 'toolkit')).rejects.toThrow('类型不匹配');
+    await expect(assets.install(extension)).rejects.toThrow('Workflow 已停用');
     expect(await f.db.installedExtension.count({ where: { id: 'local/type-check@1.0.0' } })).toBe(
       0,
     );

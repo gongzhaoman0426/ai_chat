@@ -1,5 +1,7 @@
 # Agent 配置与高级扩展
 
+> Workflow 扩展已移除，本文中与 Workflow 相关的内容仅为历史记录，见[本地扩展开发](extension-development.md#workflow-已移除)。
+
 版本：v0.9  
 方案日期：2026-09-08  
 Agent 发布交互已于 2026-09-10 简化，当前规则见 [Agent 发布与店铺应用](agent-publication.md)。

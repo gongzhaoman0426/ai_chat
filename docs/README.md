@@ -1,5 +1,7 @@
 # 聚答 JuDesk 技术方案
 
+> Workflow 扩展已在开源 Demo 中移除，只保留 Toolkit。下列设计与实施记录中涉及 Workflow 的内容仅为历史说明，兼容方式见[本地扩展开发](extension-development.md#workflow-已移除)。
+
 版本：v0.9
 
 方案日期：2026-09-09
@@ -10,7 +12,7 @@
 
 本方案将首版定位为“单台电脑管理多个平台、多个店铺”。业务数据、任务和 AI 编排运行在本机，平台通信与模型调用联网完成。模型推理和 Embedding 请求会传输必要的输入文本；“本地存储”不表示模型调用过程完全离线。
 
-平台预置一个默认自动回复 Agent，普通接待即可使用；该默认 Agent **可以删除**，删除后可 **一键加回**。定制 Agent 模块（Agent Studio、Skills、Toolkit、Workflow、子 Agent）默认隐藏，只有打开 **开发者模式** 后才可见。自动学习使用产品内置 Agent，不在配置台搭建或替换。单机版不引入 agent-platform 的组织、成员或团队工作区。
+平台预置一个默认自动回复 Agent，普通接待即可使用；该默认 Agent **可以删除**，删除后可 **一键加回**。定制 Agent 模块（Agent Studio、Skills、Toolkit、子 Agent）默认隐藏，只有打开 **开发者模式** 后才可见。自动学习使用产品内置 Agent，不在配置台搭建或替换。单机版不引入 agent-platform 的组织、成员或团队工作区。
 
 全新工作空间先进入全屏四步配置：连接店铺、全局问答检索、配置助手、确认收发并开启接待。模型使用用户填写的 OpenAI 兼容接口。基础助手由引导按店铺创建和绑定；问答、自动学习及高级定制可在开始使用后逐步完善。现有用户和自定义配置保留。
 
@@ -28,10 +30,10 @@
 | [Agent 发布与店铺应用](agent-publication.md) | 一个发布按钮、按名称绑定、子助手自动更新与发布记录 |
 | [Toolkit 自动使用最新版](toolkit-latest.md) | 按包挂载、旧助手兼容、单轮版本快照和配置继承 |
 | [技术架构](technical-design.md) | 技术栈、进程职责、模块边界、IPC、本地运行和后续扩展 |
-| [Agent 配置与高级扩展](agent-customization.md) | 开发者模式、默认可删 / 一键加回、子 Agent 挂载、Toolkit / Workflow SDK |
+| [Agent 配置与高级扩展](agent-customization.md) | 开发者模式、默认可删 / 一键加回、子 Agent 挂载、Toolkit SDK |
 | [数据与任务设计](data-design.md) | 问答回合、学习事件、候选与人工审批、批准版本发布、任务恢复、迁移和备份 |
 | [资源可用店铺与通用问答](store-resource-scope.md) | 四类资源授权、统一客服工具、通用/专属问答与图片、学习边界 |
-| [Agent 执行过程](agent-execution.md) | 每步模型/工具/Skill/Workflow/子 Agent 的输入输出、状态和发送回执 |
+| [Agent 执行过程](agent-execution.md) | 每步模型/工具/Skill/子 Agent 的输入输出、状态和发送回执 |
 | [抖店接入与多店铺工具路由](douyin-integration.md) | 平台自动装配工具、同 Agent 多店接待、店铺问答/学习隔离、兼容迁移；飞鸽探路笔记见 [references/douyin-feige-console.js](references/douyin-feige-console.js) |
 | [闲鱼接入与客服工具](goofish-integration.md) | 文本/图片收发、服务器回执、会话工具、订单与无需物流发货、验证边界 |
 | [快手接入与客服工具](kuaishou-integration.md) | 隐藏聊天 iframe SDK、文本/图片/商品卡片收发、历史/订单/全店商品/客服组查询与转接；探路笔记见 [references/kuaishou-goods-console.js](references/kuaishou-goods-console.js) |
@@ -54,7 +56,7 @@
 | 界面状态 | Zustand；异步业务查询使用 TanStack Query |
 | AI 框架 | Mastra，嵌入本地业务进程；用户编排的 Agent 只服务自动回复；学习使用内置 Agent |
 | Agent 配置 | 开发者模式开启后才显示定制模块；预置默认可删除的回复 Agent，可一键加回；子 Agent 仅开发者可见 |
-| 高级扩展 | Toolkit / Workflow / 子 Agent 挂载、TypeScript SDK、本地安装、schema 试跑和 Agent 调用 |
+| 高级扩展 | Toolkit / 子 Agent 挂载、TypeScript SDK、本地安装、schema 试跑和 Agent 调用 |
 | 用户形态 | 单机单用户、本地资源目录；不引入组织、成员、团队工作区或多租户服务 |
 | 自动学习 | 独立店铺开关；内置 LearningLoop / learningAgent，不可搭建；人工审批后入库生效 |
 | ORM | Prisma 7.x 兼容基线，负责业务数据；补丁版本在 M0 锁定 |
@@ -91,7 +93,7 @@
 5. 平台差异留在适配器，AI 逻辑留在 AI 模块，界面通过业务接口发起操作。
 6. 学习以问题与实际回答形成的回合为单位。重复事件去重，补充 / 纠正按来源版本重评；学习结果不直接向买家发送消息，也不因自身索引更新循环触发。
 7. 内置学习 Agent 只写评估和待审批建议；人工批准绑定具体内容、来源与目标版本。新增、修改、补充问法、替换图片或停用都不能跳过审批，重启也不自动批准。用户编排不得接入学习入口。
-8. 用户可编排的 Agent、Toolkit、Workflow 和子 Agent 只用于自动回复，且只在开发者模式中配置。运行开始时保存有效配置快照，切换回复绑定使尚未发送的旧配置结果重新接受校验。配置不能突破会话隔离，也不能把子 Agent 扩权成学习或审批角色。
+8. 用户可编排的 Agent、Toolkit 和子 Agent 只用于自动回复，且只在开发者模式中配置。运行开始时保存有效配置快照，切换回复绑定使尚未发送的旧配置结果重新接受校验。配置不能突破会话隔离，也不能把子 Agent 扩权成学习或审批角色。
 9. 一键加回默认 Agent 是显式用户操作：按当前产品模板新建一份默认回复资产并绑为全局回复；不恢复已删除修订的历史 ID，也不改写仍有效的店铺覆盖。
 10. 问答库对人可见、可导入、可编辑，含图片答案。人工维护与学习建议分开：前者由用户直接落库，后者仍须审批。
 11. 文档内的数据表、目录与 TypeScript 片段是实现契约或建议结构，尚不是项目中已经存在的代码。

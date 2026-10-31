@@ -3,10 +3,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import AdmZip from 'adm-zip';
-for (const source of [
-  'toolkits/local/shop-helpers/index.ts',
-  'workflows/local/reply-polish/index.ts',
-]) {
+for (const source of ['toolkits/local/shop-helpers/index.ts']) {
   const name = source.split('/')[2];
   const dir = resolve('extensions-dist', name);
   await mkdir(dir, { recursive: true });

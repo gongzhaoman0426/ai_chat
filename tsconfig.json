@@ -19,7 +19,6 @@
     "packages/**/*.ts",
     "tests/**/*.ts",
     "toolkits/**/*.ts",
-    "workflows/**/*.ts",
     "*.ts"
   ],
   "exclude": ["node_modules", "packages/database/generated"]

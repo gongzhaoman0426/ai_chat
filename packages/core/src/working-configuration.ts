@@ -13,12 +13,12 @@ import type { Engine } from './engine';
 
 type Issue = {
   message: string;
-  target: 'accounts' | 'models' | 'agents' | 'bindings' | 'toolkits' | 'workflows' | 'skills';
+  target: 'accounts' | 'models' | 'agents' | 'bindings' | 'toolkits' | 'skills';
 };
 type Resource = {
   id: string;
   name: string;
-  kind: 'skill' | 'toolkit' | 'workflow' | 'agent';
+  kind: 'skill' | 'toolkit' | 'agent';
   version: string;
   path: string;
   status: 'available' | 'partial' | 'unavailable';
@@ -143,13 +143,16 @@ export async function workingConfiguration(engine: Engine, storeId: string) {
     depth = 0,
   ) => {
     if (depth > 4) return;
+    if (c.workflowIds?.length)
+      notices.push({
+        message: `${path}：发布时挂载的 Workflow 已停用，不再生效；重新发布该助手即可移除。`,
+        target: 'agents',
+      });
     const mounted = await Promise.all(
-      [...c.toolkitIds, ...c.workflowIds].map(async (id) => {
-        const kind = c.toolkitIds.includes(id) ? ('toolkit' as const) : ('workflow' as const);
+      c.toolkitIds.map(async (id) => {
+        const kind = 'toolkit' as const;
         const [asset, permitted] = await Promise.all([
-          kind === 'toolkit'
-            ? currentToolkit(db, id).catch(() => null)
-            : db.installedExtension.findUnique({ where: { id } }),
+          currentToolkit(db, id).catch(() => null),
           resourceAllowed(db, kind, id, storeId),
         ]);
         const parsed = manifestSchema.safeParse(asset?.manifest);
@@ -181,7 +184,7 @@ export async function workingConfiguration(engine: Engine, storeId: string) {
             reason = `缺少配置：${missing.map((f) => f.label).join('、')}`;
             blockers.push({
               message: `${manifest.name}：${reason}`,
-              target: kind === 'toolkit' ? 'toolkits' : 'workflows',
+              target: 'toolkits',
             });
           }
         }

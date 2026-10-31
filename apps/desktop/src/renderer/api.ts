@@ -47,7 +47,6 @@ type Page =
   | 'agents'
   | 'skills'
   | 'toolkits'
-  | 'workflows'
   | 'runs'
   | 'settings';
 export const useUi = create<{
