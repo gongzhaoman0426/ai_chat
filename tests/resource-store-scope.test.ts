@@ -71,7 +71,6 @@ it('四种资源的本地范围独立于内容版本，冲突/已移除店铺/�
     ['agent', agent.id],
     ['skill', skill.id],
     ['toolkit', 'builtin/commerce@1.0.0'],
-    ['workflow', 'builtin/reply-helpers@1.0.0'],
   ];
   for (const [kind, id] of ids) {
     await t.scope(kind, id, [t.account.storeId]);
@@ -151,17 +150,6 @@ it('已装配的 Toolkit 和 Workflow 在解除授权后也会被拦截', async 
     .catch((error: Error) => ({ error: error.message }));
   expect(JSON.stringify(result)).toContain('未授权');
   expect(await assets.tools('builtin/utilities@1.0.0', ctx, new Set(), async () => {})).toEqual({});
-  await t.scope('workflow', 'builtin/reply-helpers@1.0.0', [t.other.storeId]);
-  await expect(
-    assets.runWorkflow(
-      'builtin/reply-helpers@1.0.0',
-      'normalize',
-      { text: 'x' },
-      ctx,
-      new Set(),
-      async () => {},
-    ),
-  ).rejects.toThrow('未授权');
   assets.close();
 });
 async function model(t: Awaited<ReturnType<typeof fixture>>, answer: (body: any) => Promise<any>) {
@@ -277,13 +265,11 @@ it('真实 Mastra 共享 Agent 按店过滤 Skill 内容/脚本、Toolkit、Work
   const childRev = await t.engine.agents.publish(child.id, child.draftRevision);
   await t.scope('skill', skill.id, [t.account.storeId]);
   await t.scope('toolkit', 'builtin/utilities@1.0.0', [t.account.storeId]);
-  await t.scope('workflow', 'builtin/reply-helpers@1.0.0', [t.account.storeId]);
   await t.scope('agent', child.id, [t.account.storeId]);
   const parent = await t.engine.agents.save({
     config: {
       ...defaultConfig(t.model.id),
       skillIds: [skill.id],
-      workflowIds: ['builtin/reply-helpers@1.0.0'],
       subAgents: [{ alias: 'only_a', revisionId: childRev.id }],
     },
   });
@@ -308,7 +294,6 @@ it('真实 Mastra 共享 Agent 按店过滤 Skill 内容/脚本、Toolkit、Work
     'runSkillScript',
     'delegate_only_a',
     ai!.assets.alias('builtin/utilities/calculate'),
-    ai!.assets.alias('builtin/reply-helpers@1.0.0/normalize'),
   ]) {
     expect(names(m.requests[0])).toContain(name);
     expect(names(m.requests[1])).not.toContain(name);

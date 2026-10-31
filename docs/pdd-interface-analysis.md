@@ -1,5 +1,7 @@
 # botsdk 拼多多接口覆盖与 JuDesk 扩展能力分析
 
+> Workflow 扩展已移除，本文中与 Workflow 相关的内容仅为历史记录，见[本地扩展开发](extension-development.md#workflow-已移除)。
+
 分析日期：2026-09-08。范围为当前本地 `botsdk` 与 `judesk` 源码。本文件保留最初接口盘点，并标注本轮实现变化；代码已实现不等于当前拼多多账号实测通过。此次未调用真实平台业务接口，也未修改店铺、订单或接待配置。
 
 ## 当前范围修订：只扩展 Agent Toolkit

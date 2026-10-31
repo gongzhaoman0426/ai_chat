@@ -1,7 +1,7 @@
 import { toolkitIdentity } from '../../../../../../packages/contracts/src/toolkit-catalog';
 import { StoreScopeField, initialStoreScope } from '../resource-scope';
 import { useRef, useState } from 'react';
-import { ArrowRight, Blocks, Bot, Check, Loader2, Search, Waypoints } from 'lucide-react';
+import { ArrowRight, Blocks, Bot, Check, Loader2, Search } from 'lucide-react';
 import { api, client } from '../../api';
 import { Badge, Button, Empty, Field, Modal } from '../ui';
 import {
@@ -143,7 +143,7 @@ export function AssetMountDialog({
     kind === 'toolkit' ? [...new Set(value.map(toolkitIdentity))] : value,
   );
   const limit = kind === 'toolkit' ? 30 : 20;
-  const Icon = kind === 'toolkit' ? Blocks : Waypoints;
+  const Icon = Blocks;
   const catalog = assets
     .filter((a) => a.manifest.kind === kind && (!a.legacy || value.includes(a.id)))
     .map((a) => (kind === 'toolkit' ? { ...a, id: toolkitIdentity(a.id) } : a));

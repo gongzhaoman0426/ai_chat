@@ -13,7 +13,6 @@ import {
   availableOperations,
   resolveReplyScope,
   supportsAsset,
-  supportsMember,
   memberOperations,
 } from './platform-scope';
 import { type PlatformId } from '../../contracts/src/platform';
@@ -369,7 +368,7 @@ export class MastraAi implements AiPort {
           await authorize();
         };
         await guard();
-        const permitted = async (kind: 'skill' | 'toolkit' | 'workflow' | 'agent', id: string) =>
+        const permitted = async (kind: 'skill' | 'toolkit' | 'agent', id: string) =>
           ctx.mode === 'debug' || (await resourceAllowed(this.db, kind, id, ctx.storeId));
         assert(depth <= ctx.config.maxDepth, '子 Agent 调用深度超限');
         assert(config.modelSnapshot, 'Agent 未配置模型');
@@ -411,9 +410,6 @@ export class MastraAi implements AiPort {
           if (await permitted('skill', skill.id)) skills.push(skill);
         const toolkitIds = [];
         for (const id of config.toolkitIds) if (await permitted('toolkit', id)) toolkitIds.push(id);
-        const workflowIds = [];
-        for (const id of config.workflowIds)
-          if (await permitted('workflow', id)) workflowIds.push(id);
         const subAgents: PublishedConfig['subAgents'] = [];
         for (const sub of config.subAgents) {
           const child = await this.db.agentRevision.findUniqueOrThrow({
@@ -424,13 +420,13 @@ export class MastraAi implements AiPort {
         const toolInfo: Record<string, ToolTraceInfo> = {};
         const declared = new Set<string>();
         const declaredOperations = new Set<string>();
-        for (const id of [...toolkitIds, ...workflowIds]) {
+        for (const id of toolkitIds) {
           const module = await this.assets.module(id);
           if (!supportsAsset(module.manifest, ctx.platform)) continue;
           for (const member of module.manifest.members) {
             const info: ToolTraceInfo = {
               name: member.name,
-              kind: module.manifest.kind === 'workflow' ? 'workflow' : 'tool',
+              kind: 'tool',
               assetId: id,
             };
             toolInfo[this.assets.alias(`${module.manifest.assetId}/${member.id}`)] = info;
@@ -609,14 +605,14 @@ export class MastraAi implements AiPort {
           },
         });
         const assetContext = (
-          kind: 'toolkit' | 'workflow',
           id: string,
           settings: Record<string, unknown>,
         ): ScopedAssetContext => {
           const check = async () => {
             await ctx.guard();
             await authorize();
-            if (ctx.mode !== 'debug') await assertResourceAllowed(this.db, kind, id, ctx.storeId);
+            if (ctx.mode !== 'debug')
+              await assertResourceAllowed(this.db, 'toolkit', id, ctx.storeId);
           };
           return {
             ...context,
@@ -661,35 +657,8 @@ export class MastraAi implements AiPort {
           const settings = await getSettings(assetId);
           Object.assign(
             tools,
-            await this.assets.tools(
-              assetId,
-              assetContext('toolkit', assetId, settings),
-              localAllowed,
-              guard,
-            ),
+            await this.assets.tools(assetId, assetContext(assetId, settings), localAllowed, guard),
           );
-        }
-        for (const assetId of workflowIds) {
-          const module = await this.assets.module(assetId);
-          for (const m of module.manifest.members) {
-            if (m.contract === 'reply.v1' || !supportsMember(module.manifest, m, context)) continue;
-            if (!m.requiresCapabilities.every((c) => localAllowed.has(c))) continue;
-            tools[this.assets.alias(`${assetId}/${m.id}`)] = createTool({
-              id: `${assetId}/${m.id}`,
-              description: m.description,
-              inputSchema: z.object({ input: z.unknown() }),
-              execute: async ({ input }) =>
-                this.assets.runWorkflow(
-                  assetId,
-                  m.id,
-                  input,
-                  assetContext('workflow', assetId, await getSettings(assetId)),
-                  localAllowed,
-                  guard,
-                  ctx.trace,
-                ),
-            });
-          }
         }
         for (const sub of subAgents)
           tools[`delegate_${sub.alias}`] = createTool({

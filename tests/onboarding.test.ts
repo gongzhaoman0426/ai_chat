@@ -276,7 +276,6 @@ it('默认助手已发布的定制在首次复制和后续换模型时完整保�
       ...defaultConfig(f.model.id),
       prompt: '这是用户已经调整过的默认提示词，不要重置成当前模板',
       toolkitIds: ['builtin/utilities@1.0.0', 'builtin/commerce@1.0.0'],
-      workflowIds: ['builtin/reply-helpers@1.0.0'],
       skillIds: [skill.id],
       subAgents: [{ alias: 'afterSales', revisionId: childRevision.id }],
       memory: { lastMessages: 12, workingMemory: true },

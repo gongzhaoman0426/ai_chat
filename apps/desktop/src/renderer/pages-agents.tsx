@@ -17,7 +17,6 @@ import {
   Plus,
   Play,
   Blocks,
-  Waypoints,
   Braces,
   ArrowRight,
   RotateCcw,
@@ -66,7 +65,7 @@ export function Agents() {
         <div>
           <div className="eyebrow">AGENT STUDIO</div>
           <h1>助手</h1>
-          <p>配置回复方式，挂载技能、工具、流程和子 Agent。学习使用独立内置 Agent。</p>
+          <p>配置回复方式，挂载技能、工具和子 Agent。学习使用独立内置 Agent。</p>
         </div>
         <div className="actions">
           <Button onClick={() => setCreating(true)}>
@@ -133,10 +132,6 @@ export function Agents() {
                   {agent.draftConfig.toolkitIds.length} 工具集
                 </span>
                 <span>
-                  <Waypoints size={13} />
-                  {agent.draftConfig.workflowIds.length} 流程集
-                </span>
-                <span>
                   <Bot size={13} />
                   {agent.draftConfig.subAgents.length} 子 Agent
                 </span>
@@ -197,8 +192,7 @@ export function Agents() {
     </>
   );
 }
-export function Assets({ kind }: { kind: 'toolkit' | 'workflow' }) {
-  const label = kind === 'toolkit' ? 'Toolkit' : 'Workflow';
+export function Assets() {
   const { data } = useData('assets.list');
   const [selected, setSelected] = useState<any>(null);
   const [member, setMember] = useState('');
@@ -211,28 +205,9 @@ export function Assets({ kind }: { kind: 'toolkit' | 'workflow' }) {
         <div>
           <div className="eyebrow">EXTENSIONS</div>
           <h1>扩展</h1>
-          <div className="segmented library-tabs" role="tablist" aria-label="扩展类型">
-            {(
-              [
-                ['toolkits', 'toolkit', 'Toolkit 工具库'],
-                ['workflows', 'workflow', 'Workflow 流程库'],
-              ] as const
-            ).map(([page, k, title]) => (
-              <button
-                key={page}
-                role="tab"
-                aria-selected={kind === k}
-                className={kind === k ? 'active' : ''}
-                onClick={() => useUi.getState().setPage(page)}
-              >
-                {title}
-              </button>
-            ))}
-          </div>
           <p>
-            {kind === 'toolkit'
-              ? '挂载一次，自动使用已安装、已启用的最新版。更新工具包后无需重新发布 Agent。'
-              : '管理可复用的业务流程，挂载给 Agent 后作为能力调用。'}
+            Toolkit 工具库：挂载一次，自动使用已安装、已启用的最新版。更新工具包后无需重新发布
+            Agent。
           </p>
         </div>
         <Button
@@ -240,19 +215,19 @@ export function Assets({ kind }: { kind: 'toolkit' | 'workflow' }) {
             if (window.confirm('安装你信任的本地 JavaScript 扩展？扩展以本地程序权限运行。'))
               await perform(
                 'assets.install',
-                { kind, storeScope: initialStoreScope() },
-                `${label} 已安装`,
+                { storeScope: initialStoreScope() },
+                'Toolkit 已安装',
               );
           }}
         >
           <Plus size={16} />
-          安装 {label}
+          安装 Toolkit
         </Button>
       </div>
       <div className="page-body">
         <div className="agent-grid">
           {data?.assets
-            ?.filter((a: any) => a.manifest.kind === kind)
+            ?.filter((a: any) => a.manifest.kind === 'toolkit')
             .map((a: any) => (
               <button
                 key={a.id}
@@ -266,12 +241,12 @@ export function Assets({ kind }: { kind: 'toolkit' | 'workflow' }) {
                   setSettings({});
                 }}
               >
-                <div className={`asset-icon ${a.manifest.kind === 'workflow' ? 'purple' : ''}`}>
-                  {a.manifest.kind === 'toolkit' ? <Blocks /> : <Waypoints />}
+                <div className="asset-icon">
+                  <Blocks />
                 </div>
-                <Badge>{a.manifest.kind === 'toolkit' ? 'Toolkit' : 'Workflow'}</Badge>
+                <Badge>Toolkit</Badge>
                 <h3>{a.manifest.name}</h3>
-                <ResourceScopeBadge kind={kind} id={a.id} />
+                <ResourceScopeBadge kind="toolkit" id={a.id} />
                 <p>{a.manifest.description}</p>
                 <div className="asset-bottom">
                   <span>{a.manifest.members.length} 个成员</span>
@@ -283,10 +258,10 @@ export function Assets({ kind }: { kind: 'toolkit' | 'workflow' }) {
         <div className="card sdk-card">
           <Braces size={32} />
           <div>
-            <h3>为你的业务编写 {label}</h3>
+            <h3>为你的业务编写 Toolkit</h3>
             <p>
-              {label} 在仓库里用 TypeScript 编写，打成含 manifest.json 与 index.mjs 的 ZIP
-              后再安装。完整步骤见官网「使用说明」中的 Toolkit / Workflow 章节。
+              Toolkit 在仓库里用 TypeScript 编写，打成含 manifest.json 与 index.mjs 的 ZIP
+              后再安装。完整步骤见 docs/extension-development.md。
             </p>
           </div>
         </div>
@@ -300,7 +275,7 @@ export function Assets({ kind }: { kind: 'toolkit' | 'workflow' }) {
       >
         {selected && (
           <>
-            <ResourceScopeEditor kind={kind} id={selected.id} />
+            <ResourceScopeEditor kind="toolkit" id={selected.id} />
             <div className="form-two">
               <Field label="试跑成员">
                 <select

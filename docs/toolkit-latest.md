@@ -1,5 +1,7 @@
 # Toolkit 自动使用最新版
 
+> Workflow 扩展已移除，本文中与 Workflow 相关的内容仅为历史记录，见[本地扩展开发](extension-development.md#workflow-已移除)。
+
 更新日期：2026-09-10。
 
 Agent 挂载 Toolkit 的逻辑名称，例如 `builtin/commerce`。每轮回复开始时，使用本机已安装、已启用的最高语义版本，升级工具包无需重新挂载或发布 Agent。旧配置里的 `builtin/commerce@1.0.0` 同样按工具包解析；自定义提示词、模型、店铺绑定和历史 AgentRevision 保留。

@@ -158,15 +158,9 @@ export async function checkStoreScopes({ app, page, dbFile, imagePath }) {
     await page.getByRole('button', { name: '编辑 Skill scope-smoke-skill', exact: true }).click();
     await restrict('skill', skillId);
     await page.getByRole('button', { name: '关闭技能编辑器', exact: true }).click();
-    for (const [kind, label, id] of [
-      ['toolkit', 'Toolkit', 'builtin/utilities@1.0.0'],
-      ['workflow', 'Workflow', 'builtin/reply-helpers@1.0.0'],
-    ]) {
+    for (const [kind, id] of [['toolkit', 'builtin/utilities@1.0.0']]) {
       const asset = (await call('assets.list')).assets.find((a) => a.id === id);
       await page.getByRole('button', { name: '扩展', exact: true }).click();
-      await page
-        .getByRole('tab', { name: `${label} ${kind === 'toolkit' ? '工具库' : '流程库'}` })
-        .click();
       await page
         .locator('.asset-card')
         .filter({ has: page.getByRole('heading', { name: asset.manifest.name, exact: true }) })

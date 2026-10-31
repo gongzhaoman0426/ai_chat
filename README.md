@@ -97,21 +97,18 @@ questions.zip
 
 ## Agent 与高级扩展
 
-在系统设置打开开发者模式，导航中显示「助手」「Skills」「扩展」（Toolkit / Workflow）和「Agent 执行」。全局默认助手在「助手」页选择，单个店铺可在店铺管理的「当前接待配置」中单独指定。
+在系统设置打开开发者模式，导航中显示「助手」「Skills」「扩展」（Toolkit 工具库）和「Agent 执行」。全局默认助手在「助手」页选择，单个店铺可在店铺管理的「当前接待配置」中单独指定。
 
 - 回复 Agent 支持提示词、模型、Memory、工具集、流程集和锁定修订的子 Agent。
 - 草稿自动保存并可隔离试运行，点击发布后才影响接待。店铺专用助手优先于全局默认。
 - 默认回复 Agent 可删除；删除后重启不会重建。设置页可一键恢复，已有店铺覆盖保持不变。
 - 学习 Agent 始终为产品内置，不能作为用户 Agent 创建、挂载或替换。
 - Skill 支持 `SKILL.md + references/ + scripts/` 编辑、ZIP 导入导出、按需加载、脚本试运行与不可变发布副本；Agent 可通过 `runSkillScript` 执行挂载版本的脚本。在助手编辑器中选择已有技能或新建并挂载，详见 [Skills 技能库](docs/skills.md)。
-- Toolkit 和 Workflow 是挂载给 Agent 的能力集合，由 Agent 按需调用；每个成员都有独立输入 / 输出 schema。店铺只选择使用哪个助手，没有额外的回复策略入口。
+- Toolkit 是挂载给 Agent 的能力集合，由 Agent 按需调用；每个成员都有独立输入 / 输出 schema。Workflow 扩展已移除，旧助手中的流程挂载会被忽略。店铺只选择使用哪个助手，没有额外的回复策略入口。
 - Toolkit 挂载一次，自动跟随本机最新启用版本；旧助手也适用，无需重新发布。每轮记录实际工具版本，详见 [Toolkit 自动使用最新版](docs/toolkit-latest.md)。
 - 调试使用独立 `sandbox` 存储、平台和知识夹具，不向真实买家发送。调试模型请求仍会产生供应商费用。
 
-可直接复制修改两个 TypeScript 示例：
-
-- [店铺话术 Toolkit](toolkits/local/shop-helpers/index.ts)
-- [回复整理 Workflow](workflows/local/reply-polish/index.ts)
+可直接复制修改 TypeScript 示例：[店铺话术 Toolkit](toolkits/local/shop-helpers/index.ts)。
 
 ```bash
 pnpm extensions:build
@@ -161,7 +158,7 @@ packages/core/           # 接待、任务、发送、学习、审批和备份
 packages/agent-config/   # Agent 草稿、发布快照和绑定
 packages/ai/             # Mastra、Memory、向量与扩展装配
 packages/platforms/      # 平台适配与消息规范化
-packages/extension-sdk/  # Toolkit / Workflow 接口
+packages/extension-sdk/  # Toolkit 接口
 resources/*-bridge.js    # 各平台固定页面桥接
 ```
 

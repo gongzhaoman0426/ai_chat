@@ -229,7 +229,7 @@ it('按语义版本选择最新启用包，同一轮及子助手版本固定，�
   ).toEqual([v11.id]);
   await t.db.installedExtension.update({ where: { id: v11.id }, data: { status: 'disabled' } });
   expect((await currentToolkit(t.db, v9.id)).id).toBe(v10.id);
-  await expect(install('2.0.0', 'workflow')).rejects.toThrow('不能在 Toolkit 与 Workflow 之间切换');
+  await expect(install('2.0.0', 'workflow')).rejects.toThrow('Workflow 已停用');
   await t.db.installedExtension.updateMany({
     where: { assetId: 'local/versioned' },
     data: { status: 'disabled' },

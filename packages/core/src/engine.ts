@@ -1573,7 +1573,7 @@ export class Engine {
         const settingsRevisions: Record<string, unknown> = {};
         const seen = new Set<string>();
         const collect = async (config: typeof resolved.config) => {
-          for (const assetId of [...config.toolkitIds, ...config.workflowIds]) {
+          for (const assetId of config.toolkitIds) {
             if (seen.has(assetId)) continue;
             seen.add(assetId);
             const rows = await assetSettingsRows(this.db, assetId, store.id);
@@ -1760,7 +1760,7 @@ export class Engine {
     } catch (e) {
       let failure = e;
       await this.lock.run(async () => {
-        // Workflows may wrap STALE as a generic step failure. Recheck the actual state
+        // Tools may wrap STALE as a generic step failure. Recheck the actual state
         // under the same lock as the fallback handoff, so it cannot overwrite a takeover.
         try {
           await guard();

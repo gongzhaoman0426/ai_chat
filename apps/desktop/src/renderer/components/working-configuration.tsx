@@ -3,7 +3,7 @@ import { useData, useUi } from '../api';
 import { Badge, Button } from './ui';
 import { Binding } from '../pages-agents';
 
-const kindNames = { skill: 'Skill', toolkit: 'Toolkit', workflow: 'Workflow', agent: '子 Agent' };
+const kindNames = { skill: 'Skill', toolkit: 'Toolkit', agent: '子 Agent' };
 export function WorkingConfigurationCard({
   storeId,
   developerMode,
@@ -28,7 +28,7 @@ export function WorkingConfigurationCard({
     else if (!developerMode) openSection('advanced');
     // Store bindings are chosen in this card; the global default lives on the agents page.
     else if (target === 'bindings') useUi.getState().setPage('agents');
-    else useUi.getState().setPage(target as 'agents' | 'toolkits' | 'workflows' | 'skills');
+    else useUi.getState().setPage(target as 'agents' | 'toolkits' | 'skills');
   };
   if (error)
     return (
@@ -109,8 +109,7 @@ export function WorkingConfigurationCard({
           查看实际挂载与可用能力 <span>{data.resources.length} 项资源</span>
         </summary>
         <p className="hint">
-          Skill 自动使用最新保存的内容，Toolkit 自动使用已启用的内容，均按店铺范围开放；Workflow
-          使用 Agent 发布时的配置。
+          Skill 自动使用最新保存的内容，Toolkit 自动使用已启用的内容，均按店铺范围开放。
         </p>
         {data.resources.length ? (
           data.resources.map((resource, i) => (

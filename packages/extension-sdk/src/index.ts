@@ -1,13 +1,12 @@
 import { platformSchema, type PlatformId } from '../../contracts/src/platform';
 import { z } from 'zod';
 import type { ToolsInput } from '@mastra/core/agent';
-import type { AnyWorkflow } from '@mastra/core/workflows';
 export const manifestSchema = z
   .object({
     apiVersion: z.literal(1),
     assetId: z.string().regex(/^(builtin|local)\/[a-z][a-z0-9-]{0,60}$/),
     version: z.string().regex(/^\d+\.\d+\.\d+$/),
-    kind: z.enum(['toolkit', 'workflow']),
+    kind: z.literal('toolkit'),
     platforms: z.array(platformSchema).min(1).optional(),
     name: z.string().min(1).max(100),
     description: z.string().max(2000),
@@ -64,12 +63,7 @@ export interface ScopedAssetContext {
 export interface ExtensionModule {
   manifest: ExtensionManifest;
   createTools?: (context: ScopedAssetContext) => ToolsInput | Promise<ToolsInput>;
-  createWorkflows?: (
-    context: ScopedAssetContext,
-  ) => Record<string, AnyWorkflow> | Promise<Record<string, AnyWorkflow>>;
 }
 export type ToolkitModule = ExtensionModule;
-export type WorkflowModule = ExtensionModule;
 export type ToolMap = ToolsInput;
-export type WorkflowMap = Record<string, AnyWorkflow>;
 export const defineExtension = (extension: ExtensionModule) => extension;

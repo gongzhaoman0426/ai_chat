@@ -7,6 +7,7 @@ import { AssetService } from '../packages/ai/src/assets';
 import type { ScopedAssetContext } from '../packages/extension-sdk/src/index';
 import { normalizePddMessage } from '../packages/platforms/src/index';
 import { apiInputs, agentConfigSchema } from '../packages/contracts/src/index';
+import { defaultConfig } from '../packages/agent-config/src/index';
 let f: Awaited<ReturnType<typeof setup>> | undefined;
 let assets: AssetService | undefined;
 afterEach(async () => {
@@ -30,7 +31,7 @@ const context: ScopedAssetContext = {
   },
   logger: { info: () => {} },
 };
-describe('Toolkit / Workflow 接口', () => {
+describe('Toolkit 接口', () => {
   it('集合展开多个成员，原生工具校验输入和输出', async () => {
     f = await setup();
     assets = new AssetService(f.db, f.dir);
@@ -44,69 +45,77 @@ describe('Toolkit / Workflow 接口', () => {
       error: true,
     });
   });
-  it('普通 Workflow 成员正常运行，旧入口不再可执行或显示', async () => {
+  it('Workflow 已移除：旧助手配置仍可读取和发布，已安装的流程不再列出', async () => {
     f = await setup();
     assets = new AssetService(f.db, f.dir);
-    expect(
-      await assets.runWorkflow(
-        'builtin/reply-helpers@1.0.0',
-        'normalize',
-        { text: '  hello  ' },
-        context,
-        new Set(),
-        async () => {},
-      ),
-    ).toEqual({ text: 'hello' });
-    await expect(
-      assets.runWorkflow(
-        'builtin/reply-helpers@1.0.0',
-        'reply',
-        { text: 'hello' },
-        context,
-        new Set(),
-        async () => {},
-      ),
-    ).rejects.toThrow('旧版回复策略入口已停用');
-    const list = await assets.list();
-    expect(
-      list.assets
-        .find((a) => a.id === 'builtin/reply-helpers@1.0.0')
-        ?.manifest.members.map((m) => m.id),
-    ).toEqual(['normalize']);
-  });
-  it('升级不改写旧版普通 Workflow 的发布哈希和 Agent 挂载', async () => {
-    f = await setup();
-    assets = new AssetService(f.db, f.dir);
-    const definition = await f.engine.agents.save({
-      config: agentConfigSchema.parse({
-        name: '有 Workflow 的 Agent',
-        prompt: '使用文本整理流程',
-        modelProfileId: f.model.id,
-        workflowIds: ['builtin/reply-helpers@1.0.0'],
-      }),
+    const legacy = { ...defaultConfig(f.model.id), workflowIds: ['builtin/reply-helpers@1.0.0'] };
+    expect(agentConfigSchema.parse(legacy)).not.toHaveProperty('workflowIds');
+    // Older builds registered a built-in Workflow package and published Agents that mount it.
+    const manifest = {
+      apiVersion: 1,
+      assetId: 'builtin/reply-helpers',
+      version: '1.0.0',
+      kind: 'workflow',
+      name: '客服处理流程',
+      description: 'legacy',
+      settingsFields: [],
+      members: [],
+    };
+    await f.db.installedExtension.create({
+      data: {
+        id: 'builtin/reply-helpers@1.0.0',
+        assetId: 'builtin/reply-helpers',
+        version: '1.0.0',
+        artifactHash: 'legacy',
+        manifest,
+        relativePath: 'builtin',
+      },
     });
-    const revision = await f.engine.agents.publish(definition.id, definition.draftRevision);
-    const original = await f.db.installedExtension.findUniqueOrThrow({
-      where: { id: 'builtin/reply-helpers@1.0.0' },
-    });
-    await assets.initialize();
+    const { definition, revision } = await legacyAgent(f, legacy as any);
     await expect(f.engine.agents.validateTree(revision.id)).resolves.toBeUndefined();
-    const saved = await f.db.installedExtension.findUniqueOrThrow({ where: { id: original.id } });
-    expect(saved.artifactHash).toBe(original.artifactHash);
-    expect(saved.manifest).toEqual(original.manifest);
-    expect((await assets.module(original.id)).manifest).toEqual(original.manifest);
+    expect((await assets.list()).assets.map((a) => a.manifest.kind)).not.toContain('workflow');
+    const draft = await f.db.agentDefinition.findUniqueOrThrow({ where: { id: definition.id } });
+    const republished = await f.engine.agents.publish(definition.id, draft.draftRevision);
+    expect(republished.configSnapshot).not.toHaveProperty('workflowIds');
   });
-  it('新安装的扩展不能继续注册独立回复策略入口', async () => {
+  it('Workflow 扩展包和回复策略入口都不能安装', async () => {
     f = await setup();
     assets = new AssetService(f.db, f.dir);
-    const legacy = await assets.module('builtin/reply-helpers@1.0.0');
-    const manifest = { ...legacy.manifest, assetId: 'local/legacy-entry' };
-    const zip = new AdmZip();
-    zip.addFile('manifest.json', Buffer.from(JSON.stringify(manifest)));
-    zip.addFile('index.mjs', Buffer.from('export default {};'));
-    const file = join(f.dir, 'legacy-entry.zip');
-    await writeFile(file, zip.toBuffer());
-    await expect(assets.install(file)).rejects.toThrow('回复策略入口已停用');
+    const install = async (name: string, manifest: Record<string, unknown>) => {
+      const zip = new AdmZip();
+      zip.addFile('manifest.json', Buffer.from(JSON.stringify(manifest)));
+      zip.addFile('index.mjs', Buffer.from('export default {};'));
+      const file = join(f!.dir, `${name}.zip`);
+      await writeFile(file, zip.toBuffer());
+      return assets!.install(file);
+    };
+    const base = {
+      apiVersion: 1,
+      version: '1.0.0',
+      name: 'x',
+      description: 'x',
+      settingsFields: [],
+      members: [
+        {
+          id: 'reply',
+          name: 'reply',
+          description: 'reply',
+          inputSchema: { type: 'object' },
+          outputSchema: { type: 'object' },
+        },
+      ],
+    };
+    await expect(
+      install('workflow', { ...base, assetId: 'local/flow', kind: 'workflow' }),
+    ).rejects.toThrow('Workflow 已停用，只能安装 Toolkit 扩展包');
+    await expect(
+      install('entry', {
+        ...base,
+        assetId: 'local/legacy-entry',
+        kind: 'toolkit',
+        members: [{ ...base.members[0], contract: 'reply.v1' }],
+      }),
+    ).rejects.toThrow('回复策略入口已停用');
   });
   it('账号能力不足时平台工具不进入挂载列表', async () => {
     f = await setup();

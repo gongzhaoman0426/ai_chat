@@ -18,7 +18,7 @@ export function initialStoreScope(): StoreScope {
   return id ? { mode: 'selected', storeIds: [id] } : { mode: 'all', storeIds: [] };
 }
 export function scopeFor(rows: ResourceScopeRecord[], kind: ResourceKind, id: string) {
-  const identity = kind === 'toolkit' || kind === 'workflow' ? id.split('@')[0] : id;
+  const identity = kind === 'toolkit' ? id.split('@')[0] : id;
   return rows.find((s) => s.kind === kind && s.resourceId === identity);
 }
 const scopeLabel = (s?: StoreScope) =>
@@ -220,18 +220,16 @@ export function AgentStorePreview({
       name: skills.find((s) => s.id === id)?.name ?? '已删除 Skill',
       missing: !skills.some((s) => s.id === id),
     })),
-    ...(['toolkit', 'workflow'] as const).flatMap((kind) =>
-      config[kind === 'toolkit' ? 'toolkitIds' : 'workflowIds'].map((id) => {
-        const a = findMountedAsset(assets, kind, id);
-        return {
-          kind,
-          id,
-          name: a?.manifest.name ?? '已删除资源',
-          missing: !a,
-          platforms: a?.manifest.platforms,
-        };
-      }),
-    ),
+    ...config.toolkitIds.map((id) => {
+      const a = findMountedAsset(assets, 'toolkit', id);
+      return {
+        kind: 'toolkit' as const,
+        id,
+        name: a?.manifest.name ?? '已删除资源',
+        missing: !a,
+        platforms: a?.manifest.platforms,
+      };
+    }),
     ...config.subAgents.map((sub) => {
       const a = agents.find((a) => a.revisions.some((r) => r.id === sub.revisionId));
       return {

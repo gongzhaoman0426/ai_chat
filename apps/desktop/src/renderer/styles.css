@@ -1542,9 +1542,6 @@ tr:last-child td {
   box-shadow: var(--shadow-sm);
   color: var(--brand);
 }
-.library-tabs {
-  margin-top: 12px;
-}
 .upload-zone {
   display: flex;
   align-items: center;

@@ -1,5 +1,7 @@
 # 实施与验收计划
 
+> Workflow 扩展已移除，本文中与 Workflow 相关的内容仅为历史记录，见[本地扩展开发](extension-development.md#workflow-已移除)。
+
 版本：v0.7  
 方案日期：2026-09-07  
 状态：已提供拼多多、抖店、闲鱼与快手首版实现；实际交付、验证证据与待实测项见[实现与验证记录](implementation-status.md)。

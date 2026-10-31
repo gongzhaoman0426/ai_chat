@@ -27,7 +27,6 @@ it('真实 Mastra 单次提交回复、工具循环截止及生产发送链路�
   let embeddings = 0;
   let mode = 'learning';
   let replyToolUsed = false;
-  let workflowUsed = false;
   let beforeReplyResponse: (() => Promise<void>) | undefined;
   const requests: any[] = [];
   server = createServer(async (req, res) => {
@@ -73,7 +72,6 @@ it('真实 Mastra 单次提交回复、工具循环截止及生产发送链路�
       (!instructions.includes('properties') || body.response_format?.type !== 'json_object')
     )
       text = '普通文字不是合法的学习结果';
-    const workflowTool = mode === 'reply-workflow' && !workflowUsed;
     const searchTool =
       (['reply-tool', 'reply-prose-tool'].includes(mode) && !replyToolUsed) ||
       mode === 'reply-loop';
@@ -82,26 +80,21 @@ it('真实 Mastra 单次提交回复、工具循环截止及生产发送链路�
         ? body.tools.find(
             (t: any) =>
               t.function.name ===
-              (workflowTool
-                ? ai!.assets.alias('builtin/reply-helpers@1.0.0/normalize')
-                : searchTool
-                  ? 'searchQaPairs'
-                  : mode === 'reply-handoff'
-                    ? 'handoffToHuman'
-                    : 'submitReply'),
+              (searchTool
+                ? 'searchQaPairs'
+                : mode === 'reply-handoff'
+                  ? 'handoffToHuman'
+                  : 'submitReply'),
           )
         : null;
     if (searchTool) replyToolUsed = true;
-    if (workflowTool) workflowUsed = true;
-    const argumentsText = workflowTool
-      ? JSON.stringify({ input: { text: '  Workflow 可用  ' } })
-      : searchTool
-        ? JSON.stringify({ query: '测试知识' })
-        : mode === 'reply-handoff'
-          ? JSON.stringify({ reason: '需人工核实订单' })
-          : mode === 'reply-invalid'
-            ? JSON.stringify({ text: '缺少 action 与 reasonCode' })
-            : text;
+    const argumentsText = searchTool
+      ? JSON.stringify({ query: '测试知识' })
+      : mode === 'reply-handoff'
+        ? JSON.stringify({ reason: '需人工核实订单' })
+        : mode === 'reply-invalid'
+          ? JSON.stringify({ text: '缺少 action 与 reasonCode' })
+          : text;
     const toolCalls = tool
       ? [
           {
@@ -237,20 +230,16 @@ it('真实 Mastra 单次提交回复、工具循环截止及生产发送链路�
   expect(replyToolUsed).toBe(true);
   expect(calls - beforeTool).toBe(2);
   expect(requests.at(-1).messages.some((m: any) => m.role === 'tool')).toBe(true);
-  mode = 'reply-workflow';
-  const beforeWorkflow = calls;
-  const withWorkflow = await ai.debug(
+  // Snapshots published before Workflow was removed may still list mounts; they are ignored.
+  mode = 'reply';
+  const beforeLegacy = calls;
+  const legacy = await ai.debug(
     { ...(rev.configSnapshot as any), workflowIds: ['builtin/reply-helpers@1.0.0'] },
-    '请运行已挂载的文本整理流程',
+    '旧快照中的流程挂载不再生效',
   );
-  expect(withWorkflow.result.text).toBe('隔离调试回答');
-  expect(calls - beforeWorkflow).toBe(2); // one tool call, then the answer; no entry model call
-  expect(JSON.stringify(requests.at(-1).messages.filter((m: any) => m.role === 'tool'))).toContain(
-    'Workflow 可用',
-  );
-  expect(JSON.stringify(requests.at(-1).tools)).not.toContain(
-    ai.assets.alias('builtin/reply-helpers@1.0.0/reply'),
-  );
+  expect(legacy.result.text).toBe('隔离调试回答');
+  expect(calls - beforeLegacy).toBe(1);
+  expect(JSON.stringify(requests.at(-1).tools)).not.toContain('reply_helpers');
   mode = 'reply-invalid';
   const beforeInvalid = calls;
   await expect(

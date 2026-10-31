@@ -1,5 +1,7 @@
 # 拼多多客服工具箱
 
+> Workflow 扩展已移除，本文中与 Workflow 相关的内容仅为历史记录，见[本地扩展开发](extension-development.md#workflow-已移除)。
+
 > 多平台更新：新建助手默认使用 `builtin/commerce@1.0.0`，在拼多多店铺提供本文能力。旧 `builtin/pdd@1.0.0/@2.0.0` 已从目录与新挂载选项移除，仅保留历史兼容；抖店使用独立实现，不继承 PDD 写操作。见 [多平台路由与兼容](douyin-integration.md)。
 
 

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-export const resourceKindSchema = z.enum(['agent', 'skill', 'toolkit', 'workflow']);
+export const resourceKindSchema = z.enum(['agent', 'skill', 'toolkit']);
 export type ResourceKind = z.infer<typeof resourceKindSchema>;
 export const storeScopeSchema = z
   .object({

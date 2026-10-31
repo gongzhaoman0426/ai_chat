@@ -222,7 +222,7 @@ export function SettingsPage({ state }: { state: any }) {
                 <Code2 size={21} />
                 <div>
                   <h3>开发者模式</h3>
-                  <p>免费使用 Agent、Skills、Toolkit、Workflow、子 Agent 及 Agent 执行过程</p>
+                  <p>免费使用 Agent、Skills、Toolkit、子 Agent 及 Agent 执行过程</p>
                 </div>
               </div>
               <Toggle

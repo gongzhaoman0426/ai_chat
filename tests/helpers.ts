@@ -209,7 +209,7 @@ export async function legacyAgent(
     orderBy: { revision: 'desc' },
   });
   const assets = await f.db.installedExtension.findMany({
-    where: { id: { in: [...config.toolkitIds, ...config.workflowIds] } },
+    where: { id: { in: config.toolkitIds } },
   });
   const snapshot = {
     ...config,
