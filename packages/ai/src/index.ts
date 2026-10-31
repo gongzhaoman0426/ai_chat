@@ -374,10 +374,38 @@ export class MastraAi implements AiPort {
         assert(depth <= ctx.config.maxDepth, '子 Agent 调用深度超限');
         assert(config.modelSnapshot, 'Agent 未配置模型');
         const maxOutputTokens = Number(config.modelSnapshot.maxTokens) || 2048;
-        const executionSignal = AbortSignal.any([
-          ctx.signal,
-          AbortSignal.timeout(Number(config.modelSnapshot.timeoutMs) || 60000),
-        ]);
+        // The model timeout bounds each round (model output plus that round's tools), not the
+        // whole run: tool-heavy turns on slow reasoning models need several rounds. A total cap
+        // of timeout × maxSteps still stops runaway executions.
+        const timeoutMs = Number(config.modelSnapshot.timeoutMs) || 60000;
+        const stepTimeout = new AbortController();
+        const totalTimeout = AbortSignal.timeout(timeoutMs * config.maxSteps);
+        let stepTimer: ReturnType<typeof setTimeout> | undefined;
+        let stepNumber = 0;
+        const startStepTimer = () => {
+          clearTimeout(stepTimer);
+          const round = ++stepNumber;
+          stepTimer = setTimeout(
+            () =>
+              stepTimeout.abort(
+                new DomainError(
+                  'MODEL_TIMEOUT',
+                  `第 ${round} 轮模型调用超过 ${timeoutMs / 1000} 秒未返回，已停止自动发送。可在系统设置 → 模型服务调大超时，或换用响应更快的模型。`,
+                ),
+              ),
+            timeoutMs,
+          );
+        };
+        const timeoutError = () =>
+          stepTimeout.signal.aborted
+            ? (stepTimeout.signal.reason as DomainError)
+            : totalTimeout.aborted
+              ? new DomainError(
+                  'MODEL_TIMEOUT',
+                  `本次执行超过 ${(timeoutMs * config.maxSteps) / 1000} 秒，已停止自动发送。`,
+                )
+              : null;
+        const executionSignal = AbortSignal.any([ctx.signal, stepTimeout.signal, totalTimeout]);
         const skills: ReturnType<typeof publishedSkills> = [];
         for (const skill of publishedSkills(config))
           if (await permitted('skill', skill.id)) skills.push(skill);
@@ -764,6 +792,7 @@ export class MastraAi implements AiPort {
               );
             },
             prepareStep: async (step) => {
+              startStepTimer();
               await ctx.guard();
               await authorize();
               return recorder?.prepareStep(step) ?? {};
@@ -778,6 +807,7 @@ export class MastraAi implements AiPort {
                 toolFailed = true;
             },
             onStepFinish: async (step) => {
+              clearTimeout(stepTimer);
               await recorder?.onStepFinish(step);
               if (ctx.mode === 'debug') return;
               // Preserve diagnostics and script results even when final reply validation fails.
@@ -810,9 +840,11 @@ export class MastraAi implements AiPort {
             modelSettings: { maxOutputTokens },
           })
           .catch(async (error) => {
-            await recorder?.fail(error);
-            throw error;
-          });
+            const failure = ctx.signal.aborted ? error : (timeoutError() ?? error);
+            await recorder?.fail(failure);
+            throw failure;
+          })
+          .finally(() => clearTimeout(stepTimer));
         usage = {
           ...response.totalUsage,
           maxOutputTokens,
@@ -826,6 +858,8 @@ export class MastraAi implements AiPort {
         // stale human takeover cannot be mistaken for an invalid model output / new handoff.
         ctx.signal.throwIfAborted();
         await ctx.guard();
+        const timedOut = timeoutError();
+        if (timedOut) throw timedOut;
         assert(
           !toolFailed && !platformErrors.length && !response.error && !response.tripwire,
           platformErrors.length
